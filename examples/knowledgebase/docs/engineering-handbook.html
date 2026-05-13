@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Engineering Handbook — Acme Corp</title></head>
+<body>
+
+<h1>Engineering at Acme Corp</h1>
+<p>This handbook describes how we build software at Acme. It covers the processes,
+standards, and expectations that apply to every engineer on the team. When in
+doubt, default to these guidelines; when they don't apply, use good judgement and
+document your reasoning.</p>
+
+<p>This document is maintained by the Engineering leadership team. Changes are
+proposed via pull request and require two approvals from senior engineers.</p>
+
+<h2>Code Review Process</h2>
+<p>Code review is a core quality practice at Acme. Every change merged to a
+production branch must be reviewed by at least one other engineer. The purpose
+of review is correctness, maintainability, and knowledge sharing — not
+gatekeeping.</p>
+
+<h3>Opening a Pull Request</h3>
+<p>Before requesting review, the author is responsible for:</p>
+<ul>
+  <li>Ensuring all automated checks pass (CI, linting, type checks, tests)</li>
+  <li>Writing a clear PR description: what changed, why, and how to test it</li>
+  <li>Linking to the related ticket or GitHub issue</li>
+  <li>Keeping the diff focused — one logical change per PR</li>
+</ul>
+<p>Draft PRs are encouraged for work-in-progress feedback. Mark a PR "Ready for
+Review" only when the author considers it mergeable.</p>
+
+<h3>Reviewer Responsibilities</h3>
+<p>Reviewers are expected to provide actionable, specific feedback. Use the
+following comment conventions:</p>
+<ul>
+  <li><strong>nit:</strong> minor style or wording suggestions (non-blocking)</li>
+  <li><strong>suggestion:</strong> a better approach worth discussing</li>
+  <li><strong>must fix:</strong> a correctness or security issue that blocks merge</li>
+  <li><strong>question:</strong> a genuine clarification request, not a block</li>
+</ul>
+<p>Approve only when you are confident the change is correct and meets our
+standards. Use "Request Changes" if there are must-fix items.</p>
+
+<h3>Response Time SLA</h3>
+<p>To keep work flowing, we hold the following response-time targets:</p>
+<ul>
+  <li>First review response within 1 business day of the "Ready for Review" mark</li>
+  <li>Follow-up responses within 4 hours once a review conversation is open</li>
+  <li>Hotfixes targeting production incidents: within 1 hour, any time</li>
+</ul>
+<p>If you cannot meet these targets, communicate this in the PR thread and
+suggest an alternative reviewer.</p>
+
+<h2>Deployment Standards</h2>
+<p>Acme deploys to production from the <code>main</code> branch on a continuous
+basis. Every merged change is a candidate for immediate deployment. We rely on
+feature flags, progressive rollouts, and robust monitoring to release safely and
+quickly.</p>
+
+<h3>Pre-Deployment Checklist</h3>
+<p>The following checks are performed automatically by our CI/CD pipeline before
+any deployment proceeds:</p>
+<ul>
+  <li>All unit and integration tests pass on the target environment</li>
+  <li>Database migrations apply cleanly against a snapshot of production data</li>
+  <li>Image scan shows no critical CVEs</li>
+  <li>Load test baseline is within 10 % of the previous week's median latency</li>
+</ul>
+<p>Engineers may trigger a deployment manually via the <code>#deployments</code>
+Slack channel by posting <code>/deploy &lt;service&gt; &lt;commit-sha&gt;</code>.
+All manual deployments are logged with the requester's name and reason.</p>
+
+<h3>Release Windows</h3>
+<p>Routine deployments are preferred during core hours (09:00–17:00 local time
+for the on-call engineer). The following windows are restricted:</p>
+<ul>
+  <li>Fridays 16:00 onwards — no non-critical releases</li>
+  <li>Public holidays — only hotfixes approved by the on-call lead</li>
+  <li>End-of-quarter freeze (last 3 business days of Q2 and Q4) — finance systems only</li>
+</ul>
+
+<h3>Rollback Procedure</h3>
+<p>If a deployment causes elevated error rates or SLA breaches, the on-call
+engineer should initiate a rollback immediately without waiting for root-cause
+analysis. Rollback is a non-event; escalate after the service is restored.</p>
+<p>To roll back a service: post <code>/rollback &lt;service&gt;</code> in
+<code>#deployments</code>. The pipeline redeploys the previous stable image and
+notifies the team. A post-incident review is scheduled within 48 hours.</p>
+
+<h2>Testing Standards</h2>
+<p>We test at multiple levels: unit, integration, and end-to-end. Each level has
+a distinct role; none replaces the others. The goal is a fast, high-confidence
+feedback loop — not 100 % coverage for its own sake.</p>
+
+<h3>Unit Tests</h3>
+<p>Unit tests verify a single function or class in isolation, with all external
+dependencies mocked. They must be fast (the full unit-test suite must complete
+in under 60 seconds) and deterministic. Write unit tests for:</p>
+<ul>
+  <li>Business logic and algorithms</li>
+  <li>Edge cases and error paths</li>
+  <li>Parsers and serialisers</li>
+</ul>
+
+<h3>Integration Tests</h3>
+<p>Integration tests exercise multiple components together, including real
+infrastructure (database, message queue). They run in CI against a
+Docker-Compose environment that mirrors production. Integration tests may be
+slow but must be deterministic — use fixed seeds, clean state between runs.</p>
+<p>Integration tests are the primary defence against migration-breaking changes.
+Never mock the database in integration tests; this is a lesson learned from the
+Q2 2024 incident where a mocked test passed but a production migration failed.</p>
+
+<h3>Coverage Requirements</h3>
+<p>We target the following minimum coverage thresholds, enforced in CI:</p>
+<ul>
+  <li>Core business logic modules: 90 % line coverage</li>
+  <li>API handlers: 80 % line coverage</li>
+  <li>Infrastructure/glue code: 60 % line coverage (judgement-based)</li>
+</ul>
+<p>Coverage below threshold blocks merges. Coverage above threshold is not an
+end in itself — a test that exists only to hit a line but asserts nothing is
+worse than no test.</p>
+
+<h2>On-Call Rotation</h2>
+<p>Every engineer with more than 6 months at Acme participates in the on-call
+rotation. The rotation is weekly, Monday to Monday. The primary on-call
+engineer is the first responder to all pages from PagerDuty. A secondary
+on-call engineer provides backup if the primary is unavailable.</p>
+
+<p>On-call compensation: engineers who are paged outside business hours receive
+1.5× time off in lieu for each hour of active incident work. This is tracked
+in Workday and approved automatically with PagerDuty evidence. The on-call
+schedule is published to the team's Microsoft 365 calendar so managers have
+visibility of who is carrying the pager each week.</p>
+
+<h3>Escalation Path</h3>
+<p>If you cannot resolve an incident within 30 minutes:</p>
+<ul>
+  <li>Page the secondary on-call engineer</li>
+  <li>Notify the Engineering Manager on Slack</li>
+  <li>Open an incident channel: <code>#incident-&lt;date&gt;</code></li>
+  <li>Bridge a Microsoft Teams war-room call for incidents affecting multiple services</li>
+  <li>Escalate to the VP Engineering if the incident affects more than 10 % of customers</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ake
+      POSTGRES_USER: ake
+      POSTGRES_PASSWORD: ake
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ake"]
+      interval: 5s
+      retries: 10
+
+  ake:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ake:ake@postgres:5432/ake
+      LLM_PROVIDER: anthropic
+      LLM_MODEL: claude-sonnet-4-6
+    env_file:
+      - ../.env.local
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../ake:/app/ake  # live reload in dev
+
+  # Optional: local LLM for offline development
+  ollama:
+    image: ollama/ollama:latest
+    profiles:
+      - offline
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+
+volumes:
+  pgdata:
+  ollama_models:

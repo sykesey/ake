@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Information Security Policy — Acme Corp</title></head>
+<body>
+
+<h1>Information Security Policy</h1>
+<p>This policy defines Acme Corp's approach to protecting the information assets
+of the company, its employees, customers, and partners. All employees,
+contractors, and third parties with access to Acme systems must comply with
+this policy. Non-compliance may result in disciplinary action, up to and
+including termination of employment or contract.</p>
+
+<p>This policy is owned by the Chief Information Security Officer (CISO) and is
+reviewed annually, or following any material security incident. The current
+version was approved on 2026-01-15.</p>
+
+<h2>Data Classification</h2>
+<p>All data handled by Acme employees must be classified according to the
+following scheme. Classification determines how data may be stored, shared,
+and disposed of. When in doubt, classify at the higher level.</p>
+
+<h3>Public Information</h3>
+<p>Information that is approved for unrestricted external distribution. Examples:</p>
+<ul>
+  <li>Marketing materials and press releases</li>
+  <li>Published product documentation and API references</li>
+  <li>Job postings and recruitment materials</li>
+  <li>Content published on acme.com or our public GitHub repositories</li>
+</ul>
+<p>Public information may be shared freely. No special handling is required,
+though accuracy and brand compliance must still be maintained.</p>
+
+<h3>Internal Use Only</h3>
+<p>Information intended for Acme employees and approved contractors only.
+Sharing outside the company without explicit approval from a department head
+is prohibited. Examples:</p>
+<ul>
+  <li>Internal process documentation and this handbook</li>
+  <li>Roadmaps and OKRs (non-financial)</li>
+  <li>Engineering architecture diagrams</li>
+  <li>Aggregated, anonymised product usage metrics</li>
+</ul>
+<p>Internal information must be stored in company-approved systems (Google
+Workspace, Confluence, GitHub Enterprise). Storing on personal devices or
+unapproved cloud storage is not permitted.</p>
+
+<h3>Confidential and Restricted</h3>
+<p>Sensitive information whose exposure could harm the company, its customers,
+or employees. Examples:</p>
+<ul>
+  <li>Customer PII (names, email addresses, payment information)</li>
+  <li>Employee salary and performance data</li>
+  <li>Source code for unreleased products</li>
+  <li>M&amp;A and financial planning data</li>
+  <li>Cryptographic keys, credentials, and secrets</li>
+</ul>
+<p>Confidential data must be encrypted at rest (AES-256) and in transit (TLS 1.2+).
+Access is granted on a need-to-know basis only. Sharing requires written
+approval from the data owner and must be logged.</p>
+
+<h2>Access Control</h2>
+<p>Access to Acme systems follows the principle of least privilege: every user,
+service, and system is granted only the minimum access required to perform its
+function. Access rights are reviewed quarterly by system owners. Upon a role
+change or departure, IT Security revokes access within 24 hours; the
+off-boarding checklist in Workday triggers automatic de-provisioning for
+Microsoft 365, Slack, GitHub Enterprise, and Google Workspace.</p>
+
+<h3>Multi-Factor Authentication</h3>
+<p>MFA is mandatory for all employee accounts, including:</p>
+<ul>
+  <li>Microsoft 365 (Outlook, Teams, SharePoint, OneDrive)</li>
+  <li>Google Workspace (email, Drive, Calendar)</li>
+  <li>GitHub Enterprise</li>
+  <li>Workday (HR and payroll data)</li>
+  <li>Slack</li>
+  <li>AWS, GCP, and Azure cloud consoles</li>
+  <li>VPN access</li>
+  <li>Any system tagged as "Confidential" in the asset register</li>
+</ul>
+<p>Approved MFA methods are hardware security keys (YubiKey — preferred),
+authenticator apps (Google Authenticator, Authy), and SMS as a last resort.
+SMS OTP may not be used for systems with access to Confidential data.</p>
+<p>Lost or compromised MFA factors must be reported to IT Security within 1 hour.
+IT Security will revoke the affected sessions and issue replacement tokens.</p>
+
+<h3>Password Policy</h3>
+<p>Passwords for company systems must meet the following requirements:</p>
+<ul>
+  <li>Minimum 16 characters</li>
+  <li>No repetition of the previous 10 passwords</li>
+  <li>Must not appear in known breach databases (checked automatically at creation)</li>
+  <li>Mandatory rotation every 180 days for privileged accounts</li>
+  <li>No mandatory rotation for non-privileged accounts (NCSC guidance)</li>
+</ul>
+<p>Use of a password manager (1Password, which Acme provides) is required for
+all accounts. Storing passwords in plain text, spreadsheets, or code is
+strictly prohibited and is a disciplinary matter.</p>
+
+<h3>Privileged Access Management</h3>
+<p>Production database access, root or admin roles in cloud environments, and
+access to cryptographic key material are classified as privileged access.
+All privileged access must be:</p>
+<ul>
+  <li>Just-in-time (requested, approved, and time-limited via Teleport)</li>
+  <li>Logged to an immutable audit trail</li>
+  <li>Approved by a second engineer for production data access</li>
+  <li>Reviewed and confirmed by the CISO quarterly</li>
+</ul>
+
+<h2>Acceptable Use Policy</h2>
+<p>Acme provides computing resources and network access for business purposes.
+Limited personal use is permitted as long as it does not interfere with work,
+consume excessive resources, or expose the company to legal or reputational risk.</p>
+
+<p>The following activities are strictly prohibited on company-owned devices and
+networks:</p>
+<ul>
+  <li>Accessing, downloading, or distributing illegal content</li>
+  <li>Mining cryptocurrency</li>
+  <li>Running unapproved software or shadow IT services</li>
+  <li>Connecting unapproved external storage or devices via USB</li>
+  <li>Disabling or circumventing endpoint security software</li>
+</ul>
+<p>Working from public Wi-Fi networks without VPN is not permitted when accessing
+Internal or Confidential systems. Use the Acme VPN (Tailscale) at all times
+on untrusted networks.</p>
+
+<h2>Incident Response</h2>
+<p>A security incident is any event that may compromise the confidentiality,
+integrity, or availability of Acme systems or data. This includes suspected
+incidents — do not wait for confirmation before reporting.</p>
+
+<h3>Reporting an Incident</h3>
+<p>Report suspected security incidents immediately via:</p>
+<ul>
+  <li><strong>Slack:</strong> post in <code>#security-incidents</code> and tag <code>@security-oncall</code></li>
+  <li><strong>Email:</strong> security@acme.com (monitored 24/7)</li>
+  <li><strong>Phone:</strong> +44 20 7946 0000 (out-of-hours security line)</li>
+</ul>
+<p>Do not attempt to investigate or contain the incident yourself before
+reporting. Do not delete any logs or evidence. Preserve the state of affected
+systems where possible and await guidance from the security team.</p>
+
+<h3>Severity Levels</h3>
+<p>Incidents are categorised as follows:</p>
+<ul>
+  <li><strong>P1 — Critical:</strong> active exfiltration, ransomware, or widespread service compromise.
+      Response within 15 minutes, 24/7. Executive notification within 1 hour.</li>
+  <li><strong>P2 — High:</strong> suspected breach of Confidential data, compromised privileged
+      account. Response within 1 hour during business hours, within 2 hours out-of-hours.</li>
+  <li><strong>P3 — Medium:</strong> suspicious access patterns, failed privileged access attempts,
+      phishing confirmed. Response within 4 business hours.</li>
+  <li><strong>P4 — Low:</strong> policy violation, lost device (low data risk), spam campaign.
+      Response within 1 business day.</li>
+</ul>
+
+<h3>Post-Incident Review</h3>
+<p>Every P1 and P2 incident requires a written post-incident review (PIR) within
+72 hours of resolution. The PIR documents the timeline, root cause, impact,
+containment actions, and preventive measures. PIRs are shared internally and
+archived for audit purposes. They are blameless: the goal is systemic
+improvement, not individual accountability.</p>
+
+</body>
+</html>

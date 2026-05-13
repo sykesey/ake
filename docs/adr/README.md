@@ -11,6 +11,10 @@ Each ADR captures a significant architectural decision: the context that forced 
 | [ADR-005](ADR-005-promoted-columns.md) | Promote Filter Fields from JSONB to Real Columns | Accepted |
 | [ADR-006](ADR-006-separation-of-concerns.md) | Structured Filtering, Semantic Search, and ACL Are Distinct Subsystems | Accepted |
 | [ADR-007](ADR-007-llm-as-judge-grading.md) | Hybrid Exact-Match + LLM-as-Judge Grading for the Compiler Loop | Accepted |
+| [ADR-008](ADR-008-polymorphic-citation-addressing.md) | Polymorphic Citation Addressing for Non-Document Sources | Accepted |
+| [ADR-009](ADR-009-direct-mapping-vs-llm-extraction.md) | Direct Mapping for Structured Sources; LLM Extraction Only Where Needed | Accepted |
+| [ADR-010](ADR-010-mcp-as-agent-interface.md) | MCP as the Primary Agent-Facing Interface | Accepted |
+| [ADR-011](ADR-011-llm-router-design.md) | LLM Router: LiteLLM for Provider Translation, AKE-Owned Tool Dispatch | Accepted |
 
 ## Adding a new ADR
 
