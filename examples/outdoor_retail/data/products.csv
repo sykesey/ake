@@ -1,0 +1,31 @@
+product_id,sku,name,category,brand,unit_cost,unit_price,weight_lbs,description
+P001,HK-001,Summit Ridge Backpack 65L,Hiking,TrailMaster,89.50,199.95,4.2,Multi-day technical backpack with aluminum frame and hip belt
+P002,HK-002,Alpine Trail Boot,Hiking,PeakStep,72.00,164.95,2.8,Waterproof mid-cut hiking boot with Vibram outsole
+P003,HK-003,Trekking Poles Set,Hiking,TrailMaster,28.00,64.95,1.1,Collapsible carbon fiber poles with cork grips
+P004,HK-004,Hydration Bladder 3L,Hiking,FlowTech,14.50,34.95,0.3,Taste-free BPA-free reservoir with quick-connect hose
+P005,HK-005,Trail Running Shorts,Hiking,SwiftMove,18.00,44.95,0.3,Lightweight 5-inch inseam with built-in liner
+P006,HK-006,Sun Hoody UPF 50,Hiking,SunShield,22.00,58.95,0.5,Long-sleeve active shirt with sun protection
+P007,CM-001,2-Person Backpacking Tent,Camping,WildShelter,120.00,279.95,4.8,3-season freestanding tent with footprint included
+P008,CM-002,Down Sleeping Bag 20F,Camping,NightHawk,95.00,219.95,2.1,850-fill power down bag rated to 20 degrees Fahrenheit
+P009,CM-003,Canister Stove,Camping,FlameCore,24.00,59.95,0.6,Compact screw-top stove compatible with standard canisters
+P010,CM-004,Camp Chair Ultralight,Camping,RestPoint,38.00,89.95,1.9,Packable camp chair with carrying case
+P011,CM-005,Headlamp 500 Lumen,Camping,LightBeam,19.00,44.95,0.2,USB-rechargeable headlamp with red night-vision mode
+P012,CM-006,Bear Canister 900ci,Camping,WildShelter,42.00,98.95,2.0,PCT-approved polycarbonate bear canister
+P013,CL-001,Climbing Harness,Climbing,VertexGear,45.00,109.95,0.8,Adjustable all-around harness with gear loops
+P014,CL-002,Dynamic Rope 60m 9.8mm,Climbing,VertexGear,88.00,199.95,8.8,Dry-treated single rope with UIAA impact rating
+P015,CL-003,Belay Device ATC,Climbing,VertexGear,11.00,29.95,0.2,Tube-style belay and rappel device
+P016,CL-004,Climbing Helmet,Climbing,VertexGear,52.00,124.95,0.7,In-mold construction with adjustable headband
+P017,CL-005,Crash Pad,Climbing,BoulderBase,130.00,299.95,12.5,Folding bouldering pad with hinged fold design
+P018,CL-006,Rock Shoes Intermediate,Climbing,GripTech,58.00,134.95,0.6,Moderate downturn shoe for intermediate climbers
+P019,WS-001,Inflatable Kayak 2-Person,Water Sports,RiverRun,220.00,499.95,22.0,Drop-stitch floor inflatable with aluminum paddles included
+P020,WS-002,Dry Bag 20L,Water Sports,FlowTech,14.00,34.95,0.3,100% waterproof roll-top dry bag
+P021,WS-003,SUP Board 10ft,Water Sports,RiverRun,350.00,799.95,18.0,Inflatable stand-up paddleboard with pump and leash
+P022,WS-004,Neoprene Wetsuit 3/2mm,Water Sports,TideWear,95.00,219.95,3.8,Full-length back-zip wetsuit for cool water paddling
+P023,WS-005,Paddling Gloves,Water Sports,TideWear,16.00,38.95,0.3,Neoprene gloves with grip palm for kayaking
+P024,SS-001,All-Mountain Skis 168cm,Snow Sports,PowderLine,280.00,649.95,10.2,Versatile twin-tip ski for groomers and powder
+P025,SS-002,Ski Boots Intermediate,Snow Sports,PowderLine,195.00,449.95,7.8,96mm last heat-moldable liner boot
+P026,SS-003,Snowboard 155cm,Snow Sports,SlideWorks,220.00,499.95,7.0,Directional twin snowboard for all-mountain riding
+P027,SS-004,Snowboard Bindings,Snow Sports,SlideWorks,88.00,199.95,2.4,Strap bindings with tool-free highback adjustment
+P028,SS-005,Ski Goggles OTG,Snow Sports,ClearView,42.00,98.95,0.4,Over-the-glasses goggle with anti-fog spherical lens
+P029,SS-006,Avalanche Safety Pack,Snow Sports,SafeSlope,160.00,369.95,3.5,"Includes beacon, probe, and shovel in carry bag"
+P030,SS-007,Insulated Ski Jacket,Snow Sports,PowderLine,130.00,299.95,2.2,Waterproof/breathable 3-in-1 jacket with removable liner

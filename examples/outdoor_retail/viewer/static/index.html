@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summit &amp; Trail — Data Viewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0f1117;
+    --surface:   #1a1d27;
+    --border:    #2a2d3e;
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --accent:    #ea580c;
+    --sidebar-w: 230px;
+    --panel-w:   340px;
+  }
+
+  body {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font: 13px/1.5 "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+
+  /* ── Left sidebar ── */
+  #sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+
+  #sidebar-header {
+    padding: 14px 14px 6px;
+  }
+  #sidebar-header h1 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  #sidebar-header p {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  #search-wrap {
+    padding: 8px 10px;
+  }
+  #search {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    padding: 6px 10px;
+    outline: none;
+  }
+  #search:focus { border-color: var(--accent); }
+
+  .sidebar-section {
+    padding: 10px 14px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  #table-list { list-style: none; }
+  .table-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    border-left: 3px solid transparent;
+    transition: background 0.1s;
+  }
+  .table-item:hover { background: rgba(255,255,255,.04); }
+  .table-item.active { background: rgba(255,255,255,.07); border-left-color: var(--accent); }
+  .table-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .table-label { flex: 1; }
+  .table-count { color: var(--muted); font-size: 11px; }
+
+  #layout-select {
+    margin: 4px 10px 10px;
+    width: calc(100% - 20px);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    padding: 5px 8px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  #meta-box {
+    margin: 6px 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  #meta-box span { color: var(--text); font-weight: 600; }
+
+  #legend { padding: 4px 14px 14px; font-size: 11px; color: var(--muted); }
+  .legend-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .legend-swatch { width: 14px; height: 14px; flex-shrink: 0; display: inline-block; border-radius: 3px; }
+  .legend-diamond { width: 12px; height: 12px; background: #94a3b8; transform: rotate(45deg); flex-shrink: 0; }
+
+  /* ── Graph canvas ── */
+  #graph-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  #cy { width: 100%; height: 100%; background: var(--bg); }
+
+  #toolbar {
+    position: absolute;
+    top: 12px; right: 12px;
+    display: flex;
+    gap: 6px;
+  }
+  .tb-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 18px;
+    width: 34px; height: 34px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+  }
+  .tb-btn:hover { background: rgba(255,255,255,.07); }
+
+  #search-hits {
+    position: absolute;
+    bottom: 12px; left: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: var(--muted);
+    display: none;
+  }
+
+  /* ── Right detail panel ── */
+  #detail {
+    width: var(--panel-w);
+    flex-shrink: 0;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+  }
+  #detail.open { transform: translateX(0); }
+
+  #detail-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  #detail-colour { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; }
+  #detail-title { flex: 1; font-size: 14px; font-weight: 600; line-height: 1.3; }
+  #detail-close {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 18px;
+    border: none;
+    background: none;
+    padding: 0 2px;
+  }
+  #detail-close:hover { color: var(--text); }
+
+  #detail-meta {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  #detail-meta span { color: var(--text); }
+
+  #detail-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 8px 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.1s, border-color 0.1s;
+  }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  #detail-elements {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .el-item {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .el-item:hover { background: rgba(255,255,255,.02); }
+
+  .el-row-id {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-family: monospace;
+  }
+
+  .el-fields { font-size: 12px; }
+  .el-field { display: flex; gap: 6px; padding: 1px 0; }
+  .el-field-name { color: var(--muted); min-width: 110px; flex-shrink: 0; }
+  .el-field-val { color: var(--text); word-break: break-word; }
+  .el-field-val.normalized { color: #86efac; }
+
+  .el-raw {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+  }
+
+  #detail-stats {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+  .stat-group { margin-bottom: 12px; }
+  .stat-group h4 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .stat-key { color: var(--muted); }
+  .stat-val { color: var(--text); font-weight: 600; }
+
+  #loading {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--muted);
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<!-- Left sidebar -->
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <h1>Summit &amp; Trail</h1>
+    <p>Tabular Data Explorer</p>
+  </div>
+
+  <div id="search-wrap">
+    <input id="search" type="search" placeholder="Search nodes…" autocomplete="off">
+  </div>
+
+  <div class="sidebar-section">Tables</div>
+  <ul id="table-list"></ul>
+
+  <div class="sidebar-section">Layout</div>
+  <select id="layout-select">
+    <option value="dagre-tb">Hierarchy (top → bottom)</option>
+    <option value="dagre-lr">Hierarchy (left → right)</option>
+    <option value="cose">Force-directed</option>
+    <option value="breadthfirst">Breadth-first</option>
+  </select>
+
+  <div class="sidebar-section">Stats</div>
+  <div id="meta-box">
+    <div>Tables <span id="m-tables">—</span></div>
+    <div>Groups <span id="m-groups">—</span></div>
+    <div>Row elements <span id="m-elements">—</span></div>
+    <div>FK edges <span id="m-fk">—</span></div>
+  </div>
+
+  <div class="sidebar-section">Legend</div>
+  <div id="legend">
+    <div class="legend-row"><span class="legend-swatch" style="background:#475569"></span> Dataset root</div>
+    <div class="legend-row"><span class="legend-swatch" style="background:#0891b2"></span> Table</div>
+    <div class="legend-row"><span class="legend-swatch" style="background:#1a1d27;border:2px solid #16a34a"></span> Group</div>
+    <div class="legend-row"><span class="legend-diamond"></span> FK relationship</div>
+  </div>
+</aside>
+
+<!-- Graph canvas -->
+<div id="graph-wrap">
+  <div id="loading">Loading graph…</div>
+  <div id="cy"></div>
+  <div id="toolbar">
+    <button class="tb-btn" id="btn-fit" title="Fit">⊡</button>
+    <button class="tb-btn" id="btn-expand" title="Relayout">↺</button>
+  </div>
+  <div id="search-hits"></div>
+</div>
+
+<!-- Right detail panel -->
+<aside id="detail">
+  <div id="detail-header">
+    <div id="detail-colour"></div>
+    <div id="detail-title">—</div>
+    <button id="detail-close">✕</button>
+  </div>
+  <div id="detail-meta"></div>
+  <div id="detail-tabs" style="display:none">
+    <button class="tab-btn active" data-tab="rows">Rows</button>
+    <button class="tab-btn" data-tab="raw">Raw text</button>
+    <button class="tab-btn" data-tab="stats">Stats</button>
+  </div>
+  <div id="detail-elements">
+    <div id="detail-empty" style="padding:40px 16px;text-align:center;color:var(--muted);font-size:12px">
+      Select a node to explore its rows.
+    </div>
+  </div>
+</aside>
+
+<script>
+'use strict';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let cy = null;
+let graphData = null;
+let currentElements = [];
+let activeTab = 'rows';
+let activeTableId = null;
+
+const $ = id => document.getElementById(id);
+
+// ── Graph stylesheet ───────────────────────────────────────────────────────
+const CY_STYLE = [
+  {
+    selector: 'node',
+    style: {
+      label: 'data(label)',
+      'font-size': 11,
+      'font-family': '"Inter","Segoe UI",system-ui,sans-serif',
+      color: '#e2e8f0',
+      'text-valign': 'center',
+      'text-halign': 'center',
+      'text-wrap': 'wrap',
+      'text-max-width': 130,
+      width: 'label',
+      height: 'label',
+      padding: 10,
+      'border-width': 2,
+      'border-color': 'data(colour)',
+      'background-color': '#1a1d27',
+    }
+  },
+  {
+    selector: 'node[type = "dataset"]',
+    style: {
+      shape: 'round-rectangle',
+      'background-color': '#2d3748',
+      'border-width': 0,
+      color: '#fff',
+      'font-weight': 700,
+      'font-size': 13,
+      padding: 14,
+    }
+  },
+  {
+    selector: 'node[type = "table"]',
+    style: {
+      shape: 'round-rectangle',
+      'background-color': 'data(colour)',
+      'border-width': 0,
+      color: '#fff',
+      'font-weight': 700,
+      'font-size': 12,
+      padding: 12,
+    }
+  },
+  {
+    selector: 'node[type = "group"]',
+    style: {
+      shape: 'round-rectangle',
+      'font-size': 10,
+      'border-width': 2,
+    }
+  },
+  {
+    selector: 'edge',
+    style: {
+      width: 1.5,
+      'line-color': 'data(colour)',
+      'target-arrow-color': 'data(colour)',
+      'target-arrow-shape': 'triangle',
+      'curve-style': 'bezier',
+      opacity: 0.5,
+    }
+  },
+  {
+    selector: 'edge[edge_type = "foreign-key"]',
+    style: {
+      width: 1.5,
+      'line-style': 'dashed',
+      'line-dash-pattern': [6, 4],
+      'line-color': '#94a3b8',
+      'target-arrow-color': '#94a3b8',
+      'target-arrow-shape': 'chevron',
+      opacity: 0.4,
+      label: 'data(fk_column)',
+      'font-size': 9,
+      color: '#94a3b8',
+      'text-background-color': '#0f1117',
+      'text-background-opacity': 1,
+      'text-background-padding': 2,
+    }
+  },
+  { selector: '.faded', style: { opacity: 0.12 } },
+  { selector: '.highlighted', style: { opacity: 1, 'border-width': 3 } },
+  {
+    selector: '.search-match',
+    style: { 'border-width': 3, 'border-color': '#facc15', opacity: 1 }
+  },
+];
+
+// ── Layouts ────────────────────────────────────────────────────────────────
+function layoutOptions(name) {
+  if (name === 'dagre-tb') return { name: 'dagre', rankDir: 'TB', nodeSep: 50, rankSep: 70, padding: 50, animate: true, animationDuration: 300 };
+  if (name === 'dagre-lr') return { name: 'dagre', rankDir: 'LR', nodeSep: 40, rankSep: 90, padding: 50, animate: true, animationDuration: 300 };
+  if (name === 'breadthfirst') return { name: 'breadthfirst', directed: true, padding: 50, spacingFactor: 1.4, animate: true, animationDuration: 300 };
+  return { name: 'cose', padding: 50, animate: true, animationDuration: 500, idealEdgeLength: 140 };
+}
+
+// ── Sidebar: table list ────────────────────────────────────────────────────
+async function loadTableList() {
+  const res = await fetch('/api/tables');
+  const { tables } = await res.json();
+  const ul = $('table-list');
+  ul.innerHTML = '';
+
+  const allLi = document.createElement('li');
+  allLi.className = 'table-item active';
+  allLi.innerHTML = `<div class="table-swatch" style="background:#475569"></div><span class="table-label">All tables</span>`;
+  allLi.addEventListener('click', () => filterByTable(null, allLi));
+  ul.appendChild(allLi);
+
+  for (const t of tables) {
+    const li = document.createElement('li');
+    li.className = 'table-item';
+    li.dataset.docId = t.doc_id;
+    li.innerHTML = `
+      <div class="table-swatch" style="background:${t.colour}"></div>
+      <span class="table-label">${t.label}</span>
+      <span class="table-count">${t.row_count}</span>
+    `;
+    li.addEventListener('click', () => filterByTable(t.doc_id, li));
+    ul.appendChild(li);
+  }
+}
+
+function filterByTable(docId, clickedLi) {
+  activeTableId = docId;
+  document.querySelectorAll('#table-list .table-item').forEach(li => li.classList.remove('active'));
+  clickedLi.classList.add('active');
+  if (!cy) return;
+  if (!docId) {
+    cy.elements().removeClass('faded').removeClass('highlighted');
+    return;
+  }
+  cy.elements().addClass('faded');
+  cy.elements(`[doc_id = "${docId}"]`).removeClass('faded').addClass('highlighted');
+  cy.edges().filter(e => {
+    const src = e.source().data('doc_id');
+    const tgt = e.target().data('doc_id');
+    return src === docId || tgt === docId;
+  }).removeClass('faded');
+}
+
+// ── Meta box ───────────────────────────────────────────────────────────────
+function updateMeta(meta) {
+  $('m-tables').textContent = meta.tables;
+  $('m-groups').textContent = meta.groups;
+  $('m-elements').textContent = meta.total_elements;
+  $('m-fk').textContent = meta.fk_edges;
+}
+
+// ── Detail panel ───────────────────────────────────────────────────────────
+async function openDetail(node) {
+  const d = node.data();
+  $('detail-colour').style.background = d.colour || '#475569';
+  $('detail-title').textContent = d.label;
+  $('detail').classList.add('open');
+
+  let meta = '';
+  if (d.type === 'dataset') {
+    meta += `<div>Type <span>dataset</span></div>`;
+    meta += `<div>Total rows <span>${d.element_count}</span></div>`;
+  } else if (d.type === 'table') {
+    meta += `<div>Type <span>table</span></div>`;
+    meta += `<div>Rows <span>${d.element_count}</span></div>`;
+    if (d.group_column) meta += `<div>Grouped by <span>${d.group_column}</span></div>`;
+    if (d.type_counts) {
+      meta += `<div style="margin-top:6px;font-size:10px;color:#94a3b8">Groups:</div>`;
+      for (const [g, n] of Object.entries(d.type_counts)) {
+        meta += `<div style="padding-left:8px">${escHtml(g)} <span>${n}</span></div>`;
+      }
+    }
+  } else if (d.type === 'group') {
+    meta += `<div>Type <span>group — ${escHtml(d.table)}</span></div>`;
+    meta += `<div>Group value <span>${escHtml(d.group_value)}</span></div>`;
+    meta += `<div>Rows <span>${d.element_count}</span></div>`;
+  }
+  $('detail-meta').innerHTML = meta;
+
+  if (d.type === 'dataset') {
+    $('detail-tabs').style.display = 'none';
+    $('detail-elements').innerHTML = `<div style="padding:20px 16px;color:#64748b;font-size:12px;text-align:center">Select a table or group to browse rows.</div>`;
+    return;
+  }
+
+  $('detail-tabs').style.display = 'flex';
+
+  if (d.type === 'table') {
+    await loadRows(d.doc_id, '');
+  } else if (d.type === 'group') {
+    await loadRows(d.doc_id, d.group_value);
+  }
+}
+
+function closeDetail() {
+  $('detail').classList.remove('open');
+  currentElements = [];
+}
+
+async function loadRows(docId, groupValue) {
+  const params = new URLSearchParams({ doc_id: docId, group_value: groupValue });
+  const res = await fetch(`/api/elements?${params}`);
+  const { elements } = await res.json();
+  currentElements = elements;
+  renderActiveTab();
+}
+
+function renderActiveTab() {
+  if (activeTab === 'rows') renderRowsTab();
+  else if (activeTab === 'raw') renderRawTab();
+  else renderStatsTab();
+}
+
+function renderRowsTab() {
+  const box = $('detail-elements');
+  if (!currentElements.length) {
+    box.innerHTML = '<div style="padding:20px 16px;color:#64748b;font-size:12px;text-align:center">No rows.</div>';
+    return;
+  }
+
+  box.innerHTML = currentElements.slice(0, 50).map(el => {
+    const lines = el.text.split('\n');
+    const nv = el.normalized_values || {};
+    const fields = lines.map(line => {
+      if (!line.includes(': ')) return '';
+      const sep = line.indexOf(': ');
+      const col = line.slice(0, sep).trim();
+      const raw = line.slice(sep + 2).trim();
+      const isNorm = col in nv;
+      const display = isNorm ? nv[col] : escHtml(raw);
+      return `<div class="el-field">
+        <span class="el-field-name">${escHtml(col)}</span>
+        <span class="el-field-val${isNorm ? ' normalized' : ''}" title="${isNorm ? 'normalized: ' + escHtml(nv[col]) : ''}">${display}</span>
+      </div>`;
+    }).filter(Boolean).join('');
+
+    return `<div class="el-item">
+      <div class="el-row-id">${el.row_id || el.element_id}</div>
+      <div class="el-fields">${fields}</div>
+    </div>`;
+  }).join('') + (currentElements.length > 50
+    ? `<div style="padding:10px 16px;color:#64748b;font-size:11px;text-align:center">… and ${currentElements.length - 50} more rows</div>`
+    : '');
+}
+
+function renderRawTab() {
+  const box = $('detail-elements');
+  if (!currentElements.length) {
+    box.innerHTML = '<div style="padding:20px 16px;color:#64748b;font-size:12px;text-align:center">No rows.</div>';
+    return;
+  }
+  box.innerHTML = currentElements.slice(0, 30).map(el => `
+    <div class="el-item">
+      <div class="el-row-id">${el.row_id || el.element_id}</div>
+      <pre class="el-raw">${escHtml(el.text)}</pre>
+    </div>
+  `).join('') + (currentElements.length > 30
+    ? `<div style="padding:10px 16px;color:#64748b;font-size:11px;text-align:center">… ${currentElements.length - 30} more</div>`
+    : '');
+}
+
+function renderStatsTab() {
+  const box = $('detail-elements');
+  if (!currentElements.length) {
+    box.innerHTML = '<div style="padding:20px 16px;color:#64748b;font-size:12px;text-align:center">No rows.</div>';
+    return;
+  }
+
+  // Parse all rows and aggregate
+  const parsed = currentElements.map(el => {
+    const row = {};
+    el.text.split('\n').forEach(line => {
+      if (line.includes(': ')) {
+        const sep = line.indexOf(': ');
+        row[line.slice(0, sep).trim()] = line.slice(sep + 2).trim();
+      }
+    });
+    return row;
+  });
+
+  // Value frequency per column
+  const cols = Object.keys(parsed[0] || {});
+  let html = `<div id="detail-stats">`;
+  html += `<div class="stat-group"><h4>Row count</h4><div class="stat-row"><span class="stat-key">Rows</span><span class="stat-val">${currentElements.length}</span></div></div>`;
+
+  // String columns: top-5 values
+  const strCols = cols.filter(c => {
+    const vals = parsed.map(r => r[c]).filter(Boolean);
+    return vals.some(v => isNaN(Number(v.replace(/,/g, ''))));
+  }).slice(0, 5);
+
+  if (strCols.length) {
+    for (const col of strCols) {
+      const freq = {};
+      parsed.forEach(r => { const v = r[col]; if (v) freq[v] = (freq[v] || 0) + 1; });
+      const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      if (top.length > 1) {
+        html += `<div class="stat-group"><h4>${escHtml(col)}</h4>`;
+        top.forEach(([v, n]) => {
+          html += `<div class="stat-row"><span class="stat-key">${escHtml(v)}</span><span class="stat-val">${n}</span></div>`;
+        });
+        html += `</div>`;
+      }
+    }
+  }
+
+  // Numeric columns: min, max, avg
+  const numCols = cols.filter(c => {
+    const vals = parsed.map(r => parseFloat(r[c])).filter(v => !isNaN(v));
+    return vals.length > parsed.length * 0.5;
+  }).slice(0, 5);
+
+  if (numCols.length) {
+    for (const col of numCols) {
+      const vals = parsed.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      html += `<div class="stat-group"><h4>${escHtml(col)}</h4>`;
+      html += `<div class="stat-row"><span class="stat-key">min</span><span class="stat-val">${fmt(min)}</span></div>`;
+      html += `<div class="stat-row"><span class="stat-key">max</span><span class="stat-val">${fmt(max)}</span></div>`;
+      html += `<div class="stat-row"><span class="stat-key">avg</span><span class="stat-val">${fmt(avg)}</span></div>`;
+      html += `</div>`;
+    }
+  }
+
+  html += `</div>`;
+  box.innerHTML = html;
+}
+
+function fmt(n) {
+  return Number.isInteger(n) ? n : n.toFixed(2);
+}
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab = btn.dataset.tab;
+    renderActiveTab();
+  });
+});
+
+// ── Search ─────────────────────────────────────────────────────────────────
+let searchTimeout = null;
+$('search').addEventListener('input', e => {
+  clearTimeout(searchTimeout);
+  const q = e.target.value.trim();
+  searchTimeout = setTimeout(() => {
+    if (!cy) return;
+    cy.elements().removeClass('search-match').removeClass('faded');
+    if (!q) { $('search-hits').style.display = 'none'; return; }
+    const lower = q.toLowerCase();
+    const matches = cy.nodes().filter(n => n.data('label').toLowerCase().includes(lower));
+    cy.elements().addClass('faded');
+    matches.removeClass('faded').addClass('search-match');
+    matches.connectedEdges().removeClass('faded');
+    const hitsEl = $('search-hits');
+    hitsEl.style.display = 'block';
+    hitsEl.textContent = `${matches.length} match${matches.length !== 1 ? 'es' : ''}`;
+    if (matches.length > 0 && matches.length <= 20) {
+      cy.animate({ fit: { eles: matches, padding: 60 }, duration: 300 });
+    }
+  }, 200);
+});
+
+// ── Bootstrap ──────────────────────────────────────────────────────────────
+async function init() {
+  await loadTableList();
+
+  const res = await fetch('/api/graph');
+  graphData = await res.json();
+  updateMeta(graphData.meta);
+
+  const elements = [
+    ...graphData.nodes.map(n => ({ data: n.data })),
+    ...graphData.edges.map(e => ({ data: e.data })),
+  ];
+
+  cy = cytoscape({
+    container: $('cy'),
+    elements,
+    style: CY_STYLE,
+    layout: layoutOptions('dagre-tb'),
+    minZoom: 0.05,
+    maxZoom: 4,
+    wheelSensitivity: 0.3,
+  });
+
+  $('loading').style.display = 'none';
+
+  cy.on('tap', 'node', evt => {
+    cy.elements().removeClass('highlighted');
+    evt.target.addClass('highlighted');
+    openDetail(evt.target);
+  });
+
+  cy.on('tap', evt => {
+    if (evt.target === cy) {
+      closeDetail();
+      cy.elements().removeClass('highlighted');
+    }
+  });
+
+  $('btn-fit').addEventListener('click', () => cy.animate({ fit: { padding: 50 }, duration: 300 }));
+  $('btn-expand').addEventListener('click', () => cy.layout(layoutOptions($('layout-select').value)).run());
+  $('layout-select').addEventListener('change', e => cy.layout(layoutOptions(e.target.value)).run());
+  $('detail-close').addEventListener('click', closeDetail);
+}
+
+init().catch(err => {
+  $('loading').textContent = `Error: ${err.message}`;
+});
+</script>
+</body>
+</html>
