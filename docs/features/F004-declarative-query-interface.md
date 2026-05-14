@@ -1,6 +1,6 @@
 # F004 — Declarative Query Interface
 
-**Status:** Defined  
+**Status:** Implemented  
 **Layer:** 3 — Query
 
 ## Statement

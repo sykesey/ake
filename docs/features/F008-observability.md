@@ -1,6 +1,6 @@
 # F008 — Structured Query Observability
 
-**Status:** Defined  
+**Status:** Implemented  
 **Layer:** 3 — Query / Cross-cutting
 
 ## Statement

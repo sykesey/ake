@@ -1,6 +1,6 @@
 # F009 — Tabular & Columnar Data Ingestion
 
-**Status:** Defined  
+**Status:** Implemented  
 **Layer:** 1 — Ingestion & Parsing (extended)
 
 ## Statement

@@ -1,6 +1,6 @@
 # F001 — Document Ingestion & Parsing
 
-**Status:** Defined  
+**Status:** Implemented  
 **Layer:** 1 — Ingestion & Parsing
 
 ## Statement

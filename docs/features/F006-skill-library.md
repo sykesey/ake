@@ -1,6 +1,6 @@
 # F006 — Extraction Skill Library
 
-**Status:** Defined  
+**Status:** Implemented  
 **Layer:** 2 — Artifact Compilation
 
 ## Statement

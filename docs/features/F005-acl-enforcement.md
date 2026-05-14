@@ -1,6 +1,6 @@
 # F005 — Access Control & Row-Level Security
 
-**Status:** Defined  
+**Status:** Implemented  
 **Layer:** 2 (storage) / 3 (query)
 
 ## Statement

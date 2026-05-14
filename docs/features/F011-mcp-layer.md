@@ -1,6 +1,6 @@
 # F011 — MCP Server Layer: Polymorphic Resources, Tools & Data Structures
 
-**Status:** Defined  
+**Status:** Implemented  
 **Layer:** Cross-cutting (sits above Layer 3 — Query)
 
 ## Statement
