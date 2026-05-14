@@ -98,15 +98,13 @@ Add an entry under `mcpServers`. The server requires a running Postgres instance
 {
   "mcpServers": {
     "ake-knowledgebase": {
-      "command": "uv",
+      "command": "/path/to/ake/.venv/bin/python",
       "args": [
-        "run",
-        "python",
-        "examples/knowledgebase/mcp_server.py",
+        "/path/to/ake/examples/knowledgebase/mcp_server.py",
         "--stdio",
         "--no-compile"
       ],
-      "cwd": "/absolute/path/to/ake",
+      "cwd": "/path/to/ake",
       "env": {
         "DATABASE_URL": "postgresql+asyncpg://ake:ake@localhost/ake",
         "LLM_API_KEY": "your-api-key"

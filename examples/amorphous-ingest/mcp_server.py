@@ -405,31 +405,31 @@ def main() -> None:
                         help="Use stdio transport instead of SSE")
     args = parser.parse_args()
 
-    print("╔══════════════════════════════════════════════════════╗")
-    print("║  AKE — Amorphous Ingest MCP Server                   ║")
-    print("╚══════════════════════════════════════════════════════╝")
-    print()
-    print("  Loading dataset …")
+#    print("╔══════════════════════════════════════════════════════╗")
+#    print("║  AKE — Amorphous Ingest MCP Server                   ║")
+#    print("╚══════════════════════════════════════════════════════╝")
+#    print()
+#    print("  Loading dataset …")
     asyncio.run(_load_dataset(Path(args.data), args.dataset_name))
 
-    print()
-    print(f"  Dataset   : {_result.dataset_name}")
-    print(f"  Namespace : {_ontology.namespace}")
-    print()
-    print("  Resources:")
-    print(f"    ake://amorphous/{_result.dataset_name}/tables")
-    print(f"    ake://amorphous/{_result.dataset_name}/schema/{{table}}")
-    print(f"    ake://amorphous/{_result.dataset_name}/relationships")
-    print(f"    ake://amorphous/{_result.dataset_name}/ontology")
-    print()
-    print("  Tools:")
-    for tool in ("list_tables", "get_schema", "query_rows",
-                 "get_relationships", "describe_ontology", "describe_class"):
-        print(f"    • {tool}")
-    print()
+#    print()
+#    print(f"  Dataset   : {_result.dataset_name}")
+#    print(f"  Namespace : {_ontology.namespace}")
+#    print()
+#    print("  Resources:")
+#    print(f"    ake://amorphous/{_result.dataset_name}/tables")
+#    print(f"    ake://amorphous/{_result.dataset_name}/schema/{{table}}")
+#    print(f"    ake://amorphous/{_result.dataset_name}/relationships")
+#    print(f"    ake://amorphous/{_result.dataset_name}/ontology")
+#    print()
+#    print("  Tools:")
+#    for tool in ("list_tables", "get_schema", "query_rows",
+#                 "get_relationships", "describe_ontology", "describe_class"):
+#        print(f"    • {tool}")
+#    print()
 
     if args.stdio:
-        print("  Transport: stdio")
+ #       print("  Transport: stdio")
         mcp.run(transport="stdio")
     else:
         print(f"  Transport: SSE  →  http://{args.host}:{args.port}/sse")

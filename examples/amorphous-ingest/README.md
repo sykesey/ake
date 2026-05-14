@@ -20,7 +20,7 @@ Point the pipeline at any directory containing CSV, Parquet, Arrow, HTML, PDF, o
 The included `data/` directory contains a small but realistic dataset representing a software organisation:
 
 | File | Rows | Description |
-|---|---|---|
+| --- | --- | --- |
 | `data/employees.csv` | 15 | Staff records — employee_id, name, title, team, salary, hire date |
 | `data/teams.csv` | 5 | Engineering and operations teams with a lead employee FK |
 | `data/projects.csv` | 8 | Active and completed projects with team FK and budget |
@@ -37,7 +37,7 @@ The included `data/` directory contains a small but realistic dataset representi
 
 The pipeline infers five FK relationships automatically:
 
-```
+```text
 assignments.employee_id  →  employees.employee_id   95%  [both]
 assignments.project_id   →  projects.project_id     95%  [both]
 projects.team_id         →  teams.team_id           95%  [both]
@@ -72,7 +72,7 @@ uv run python examples/amorphous-ingest/run.py path/to/data/ --output out/ --dat
 **Output files** (written to `output/` by default):
 
 | File | Format | Description |
-|---|---|---|
+| --- | --- | --- |
 | `ontology.yaml` | YAML | Human-readable ontology: classes, properties, relationships |
 | `ontology.owl` | OWL 2 / Turtle | Machine-readable RDF graph for use in Protégé or triple stores |
 | `graph.json` | JSON | Cytoscape.js-compatible nodes and edges including document nodes |
@@ -121,7 +121,7 @@ uv run python examples/amorphous-ingest/mcp_server.py --dataset-name acme --port
 
 **MCP resources:**
 
-```
+```text
 ake://amorphous/{dataset}/tables           — all tables with row counts
 ake://amorphous/{dataset}/schema/{table}   — column schema and semantic roles
 ake://amorphous/{dataset}/relationships    — all inferred FK relationships
@@ -131,7 +131,7 @@ ake://amorphous/{dataset}/ontology         — full OWL class model
 **MCP tools:**
 
 | Tool | Description |
-|---|---|
+| --- | --- |
 | `list_tables()` | Tables with row counts and column names |
 | `get_schema(table_name)` | Column schema including XSD types, semantic roles, and relationships |
 | `query_rows(table_name, column?, value?, limit?)` | Filter and paginate rows |
@@ -141,7 +141,7 @@ ake://amorphous/{dataset}/ontology         — full OWL class model
 
 **Suggested agent workflow:**
 
-```
+```text
 1. list_tables()           → discover what tables exist
 2. get_schema("employees") → understand column types and roles
 3. query_rows("employees", column="remote", value="true") → filter data
@@ -154,24 +154,22 @@ ake://amorphous/{dataset}/ontology         — full OWL class model
 Claude Desktop uses stdio transport. Open your Claude Desktop config file:
 
 | OS | Path |
-|---|---|
+| --- | --- |
 | macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
 | Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
 
-Add an entry under `mcpServers`, replacing `/absolute/path/to/ake` with the actual path to this repository:
+Add an entry under `mcpServers`, replacing `/path/to/ake` with the actual path to this repository:
 
 ```json
 {
   "mcpServers": {
     "ake-amorphous-ingest": {
-      "command": "uv",
+      "command": "/path/to/ake/.venv/bin/python",
       "args": [
-        "run",
-        "python",
-        "examples/amorphous-ingest/mcp_server.py",
+        "/path/to/ake/examples/amorphous-ingest/mcp_server.py",
         "--stdio"
       ],
-      "cwd": "/absolute/path/to/ake"
+      "cwd": "/path/to/ake"
     }
   }
 }
@@ -183,16 +181,14 @@ To point it at a different data directory or give the dataset a custom name:
 {
   "mcpServers": {
     "ake-amorphous-ingest": {
-      "command": "uv",
+      "command": "/path/to/ake/.venv/bin/python",
       "args": [
-        "run",
-        "python",
-        "examples/amorphous-ingest/mcp_server.py",
+        "/path/to/ake/examples/amorphous-ingest/mcp_server.py",
         "--stdio",
-        "--data", "/absolute/path/to/your/data",
+        "--data", "/path/to/your/data",
         "--dataset-name", "mydata"
       ],
-      "cwd": "/absolute/path/to/ake"
+      "cwd": "/path/to/ake"
     }
   }
 }
@@ -217,7 +213,7 @@ uv run python examples/amorphous-ingest/view.py path/to/your/data/
 **Supported file types:**
 
 | Type | Extensions |
-|---|---|
+| --- | --- |
 | Tabular | `.csv`, `.parquet`, `.arrow`, `.feather`, `.arrows` |
 | Documents | `.html`, `.htm`, `.pdf`, `.docx`, `.doc`, `.txt`, `.md` |
 
@@ -226,7 +222,7 @@ uv run python examples/amorphous-ingest/view.py path/to/your/data/
 ## Key source files
 
 | Path | Role |
-|---|---|
+| --- | --- |
 | `ake/ingestion/amorphous_pipeline.py` | Core pipeline: discovery, schema derivation, FK inference, document linking |
 | `ake/ontology/builder.py` | OWL ontology construction from ingestion results |
 | `ake/ontology/graph.py` | Cytoscape.js graph and element tree builders |

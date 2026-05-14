@@ -135,14 +135,12 @@ Add an entry under `mcpServers`. The server requires a running Postgres instance
 {
   "mcpServers": {
     "ake-outdoor-retail": {
-      "command": "uv",
+      "command": "/path/to/ake/.venv/bin/python",
       "args": [
-        "run",
-        "python",
-        "examples/outdoor_retail/mcp_server.py",
+        "/path/to/ake/examples/outdoor_retail/mcp_server.py",
         "--stdio"
       ],
-      "cwd": "/absolute/path/to/ake",
+      "cwd": "/path/to/ake",
       "env": {
         "DATABASE_URL": "postgresql+asyncpg://ake:ake@localhost/ake"
       }
