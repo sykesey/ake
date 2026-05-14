@@ -1,0 +1,171 @@
+{
+  "nodes": [
+    {
+      "data": {
+        "id": "dataset:amorphous-ingest",
+        "label": "amorphous-ingest",
+        "type": "dataset",
+        "colour": "#334155",
+        "element_count": 48
+      }
+    },
+    {
+      "data": {
+        "id": "table:assignments",
+        "label": "Assignment",
+        "type": "table",
+        "table": "assignments",
+        "doc_id": "89d68885cff7ae2c6fd9dc0e6947773e95f7819c88668de7afa7529bdd3c4b47",
+        "colour": "#0891b2",
+        "row_count": 20,
+        "class_name": "Assignment",
+        "property_count": 6
+      }
+    },
+    {
+      "data": {
+        "id": "table:employees",
+        "label": "Employee",
+        "type": "table",
+        "table": "employees",
+        "doc_id": "225fdc1edc41af3008210654220e988350b14659b93a874819b68d7da126337b",
+        "colour": "#7c3aed",
+        "row_count": 15,
+        "class_name": "Employee",
+        "property_count": 8
+      }
+    },
+    {
+      "data": {
+        "id": "table:projects",
+        "label": "Project",
+        "type": "table",
+        "table": "projects",
+        "doc_id": "cea0ce759bf093369f0fbf299fe91343a2279039ba1bde146763c781dcbdfeb2",
+        "colour": "#16a34a",
+        "row_count": 8,
+        "class_name": "Project",
+        "property_count": 7
+      }
+    },
+    {
+      "data": {
+        "id": "table:teams",
+        "label": "Team",
+        "type": "table",
+        "table": "teams",
+        "doc_id": "9c326203d2172b876dc3f7ca16a4531562fc134e45ca51c6c842e84bdc9a5c70",
+        "colour": "#e11d48",
+        "row_count": 5,
+        "class_name": "Team",
+        "property_count": 5
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "id": "contains:assignments",
+        "source": "dataset:amorphous-ingest",
+        "target": "table:assignments",
+        "type": "contains",
+        "colour": "#0891b2"
+      }
+    },
+    {
+      "data": {
+        "id": "contains:employees",
+        "source": "dataset:amorphous-ingest",
+        "target": "table:employees",
+        "type": "contains",
+        "colour": "#7c3aed"
+      }
+    },
+    {
+      "data": {
+        "id": "contains:projects",
+        "source": "dataset:amorphous-ingest",
+        "target": "table:projects",
+        "type": "contains",
+        "colour": "#16a34a"
+      }
+    },
+    {
+      "data": {
+        "id": "contains:teams",
+        "source": "dataset:amorphous-ingest",
+        "target": "table:teams",
+        "type": "contains",
+        "colour": "#e11d48"
+      }
+    },
+    {
+      "data": {
+        "id": "fk:assignments.employee_id\u2192employees",
+        "source": "table:assignments",
+        "target": "table:employees",
+        "type": "foreign_key",
+        "colour": "#94a3b8",
+        "label": "employee_id",
+        "confidence": 0.95,
+        "evidence": "both"
+      }
+    },
+    {
+      "data": {
+        "id": "fk:assignments.project_id\u2192projects",
+        "source": "table:assignments",
+        "target": "table:projects",
+        "type": "foreign_key",
+        "colour": "#94a3b8",
+        "label": "project_id",
+        "confidence": 0.95,
+        "evidence": "both"
+      }
+    },
+    {
+      "data": {
+        "id": "fk:employees.team_id\u2192teams",
+        "source": "table:employees",
+        "target": "table:teams",
+        "type": "foreign_key",
+        "colour": "#94a3b8",
+        "label": "team_id",
+        "confidence": 0.95,
+        "evidence": "both"
+      }
+    },
+    {
+      "data": {
+        "id": "fk:projects.team_id\u2192teams",
+        "source": "table:projects",
+        "target": "table:teams",
+        "type": "foreign_key",
+        "colour": "#94a3b8",
+        "label": "team_id",
+        "confidence": 0.95,
+        "evidence": "both"
+      }
+    },
+    {
+      "data": {
+        "id": "fk:teams.lead_employee_id\u2192employees",
+        "source": "table:teams",
+        "target": "table:employees",
+        "type": "foreign_key",
+        "colour": "#94a3b8",
+        "label": "lead_employee_id",
+        "confidence": 0.95,
+        "evidence": "both"
+      }
+    }
+  ],
+  "meta": {
+    "dataset": "amorphous-ingest",
+    "namespace": "http://ake.local/ontology/amorphous-ingest#",
+    "generated_at": "2026-05-14T12:23:25.592588+00:00",
+    "tables": 4,
+    "total_elements": 48,
+    "fk_relationships": 5
+  }
+}

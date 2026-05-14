@@ -1,0 +1,16 @@
+employee_id,first_name,last_name,title,team_id,hire_date,salary,remote
+E001,Jordan,Kim,Engineering Lead,T001,2019-03-15,145000,false
+E002,Alex,Patel,Senior Engineer,T001,2020-07-01,125000,true
+E003,Sam,Chen,Engineer,T001,2021-11-20,98000,false
+E004,Riley,Okafor,Engineer,T001,2022-04-10,95000,true
+E005,Morgan,Santos,Senior Engineer,T001,2020-01-15,128000,false
+E006,Casey,Liu,Design Lead,T002,2018-09-01,138000,false
+E007,Avery,Park,Senior Designer,T002,2021-03-22,112000,true
+E008,Quinn,Hassan,UX Designer,T002,2022-09-01,88000,false
+E009,Taylor,Nguyen,Data Science Lead,T003,2019-06-01,152000,true
+E010,Drew,Rossi,Data Scientist,T003,2021-08-15,118000,false
+E011,Jamie,Ivanova,ML Engineer,T003,2022-02-28,122000,true
+E012,Skyler,Brown,CS Lead,T004,2017-11-01,135000,false
+E013,Blair,Thompson,CS Manager,T004,2020-05-15,105000,false
+E014,Reese,Miller,CS Specialist,T004,2022-07-01,82000,true
+E015,Finley,Anderson,Finance Lead,T005,2018-04-15,148000,false

@@ -15,6 +15,9 @@ Each ADR captures a significant architectural decision: the context that forced 
 | [ADR-009](ADR-009-direct-mapping-vs-llm-extraction.md) | Direct Mapping for Structured Sources; LLM Extraction Only Where Needed | Accepted |
 | [ADR-010](ADR-010-mcp-as-agent-interface.md) | MCP as the Primary Agent-Facing Interface | Accepted |
 | [ADR-011](ADR-011-llm-router-design.md) | LLM Router: LiteLLM for Provider Translation, AKE-Owned Tool Dispatch | Accepted |
+| [ADR-012](ADR-012-zero-declaration-schema-derivation.md) | Zero-Declaration Schema Derivation for Amorphous Sources | Accepted |
+| [ADR-013](ADR-013-two-pass-fk-inference.md) | Two-Pass FK Inference: Naming Convention Followed by Value Overlap | Accepted |
+| [ADR-014](ADR-014-owl-and-multi-format-ontology-export.md) | OWL 2 / RDF as Canonical Ontology Representation; Multi-Format Export | Accepted |
 
 ## Adding a new ADR
 

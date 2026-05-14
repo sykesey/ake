@@ -1,0 +1,283 @@
+# AKE Amorphous Ontology — amorphous-ingest
+# Generated: 2026-05-14T12:23:25.592588+00:00
+
+dataset:
+  name: amorphous-ingest
+  source_dir: /Users/bensykes/Documents/dev/ake/examples/amorphous-ingest/data
+  generated_at: "2026-05-14T12:23:25.592588+00:00"
+  stats:
+    tables: 4
+    documents: 0
+    total_elements: 48
+    relationships: 5
+
+tables:
+  assignments:
+    class: Assignment
+    doc_id: "89d68885cff7ae2c6fd9dc0e6947773e95f7819c88668de7afa7529bdd3c4b47"
+    row_count: 20
+    source: /Users/bensykes/Documents/dev/ake/examples/amorphous-ingest/data/assignments.csv
+    columns:
+      - name: assignment_id
+        owl_name: assignmentId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: entity_id
+      - name: employee_id
+        owl_name: employeeId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: foreign_key
+      - name: project_id
+        owl_name: projectId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: foreign_key
+      - name: role
+        owl_name: role
+        type: "xsd:string"
+        nullable: true
+        semantic_role: categorical
+      - name: allocated_hours
+        owl_name: allocatedHours
+        type: "xsd:integer"
+        nullable: true
+        semantic_role: measure
+      - name: start_date
+        owl_name: startDate
+        type: "xsd:date"
+        nullable: true
+        semantic_role: date
+  employees:
+    class: Employee
+    doc_id: "225fdc1edc41af3008210654220e988350b14659b93a874819b68d7da126337b"
+    row_count: 15
+    source: /Users/bensykes/Documents/dev/ake/examples/amorphous-ingest/data/employees.csv
+    columns:
+      - name: employee_id
+        owl_name: employeeId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: entity_id
+      - name: first_name
+        owl_name: firstName
+        type: "xsd:string"
+        nullable: true
+        semantic_role: unknown
+      - name: last_name
+        owl_name: lastName
+        type: "xsd:string"
+        nullable: true
+        semantic_role: unknown
+      - name: title
+        owl_name: title
+        type: "xsd:string"
+        nullable: true
+        semantic_role: label
+      - name: team_id
+        owl_name: teamId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: foreign_key
+      - name: hire_date
+        owl_name: hireDate
+        type: "xsd:date"
+        nullable: true
+        semantic_role: date
+      - name: salary
+        owl_name: salary
+        type: "xsd:integer"
+        nullable: true
+        semantic_role: currency
+      - name: remote
+        owl_name: remote
+        type: "xsd:boolean"
+        nullable: true
+        semantic_role: categorical
+  projects:
+    class: Project
+    doc_id: cea0ce759bf093369f0fbf299fe91343a2279039ba1bde146763c781dcbdfeb2
+    row_count: 8
+    source: /Users/bensykes/Documents/dev/ake/examples/amorphous-ingest/data/projects.csv
+    columns:
+      - name: project_id
+        owl_name: projectId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: entity_id
+      - name: name
+        owl_name: name
+        type: "xsd:string"
+        nullable: true
+        semantic_role: label
+      - name: team_id
+        owl_name: teamId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: foreign_key
+      - name: status
+        owl_name: status
+        type: "xsd:string"
+        nullable: true
+        semantic_role: categorical
+      - name: start_date
+        owl_name: startDate
+        type: "xsd:date"
+        nullable: true
+        semantic_role: date
+      - name: end_date
+        owl_name: endDate
+        type: "xsd:date"
+        nullable: true
+        semantic_role: date
+      - name: budget
+        owl_name: budget
+        type: "xsd:integer"
+        nullable: true
+        semantic_role: currency
+  teams:
+    class: Team
+    doc_id: "9c326203d2172b876dc3f7ca16a4531562fc134e45ca51c6c842e84bdc9a5c70"
+    row_count: 5
+    source: /Users/bensykes/Documents/dev/ake/examples/amorphous-ingest/data/teams.csv
+    columns:
+      - name: team_id
+        owl_name: teamId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: entity_id
+      - name: name
+        owl_name: name
+        type: "xsd:string"
+        nullable: true
+        semantic_role: label
+      - name: department
+        owl_name: department
+        type: "xsd:string"
+        nullable: true
+        semantic_role: categorical
+      - name: lead_employee_id
+        owl_name: leadEmployeeId
+        type: "xsd:string"
+        nullable: true
+        semantic_role: foreign_key
+      - name: headcount
+        owl_name: headcount
+        type: "xsd:integer"
+        nullable: true
+        semantic_role: measure
+
+relationships:
+  - source_table: assignments
+    source_column: employee_id
+    target_table: employees
+    target_column: employee_id
+    confidence: 0.95
+    evidence: both
+    owl_property: employee
+  - source_table: assignments
+    source_column: project_id
+    target_table: projects
+    target_column: project_id
+    confidence: 0.95
+    evidence: both
+    owl_property: project
+  - source_table: employees
+    source_column: team_id
+    target_table: teams
+    target_column: team_id
+    confidence: 0.95
+    evidence: both
+    owl_property: team
+  - source_table: projects
+    source_column: team_id
+    target_table: teams
+    target_column: team_id
+    confidence: 0.95
+    evidence: both
+    owl_property: team
+  - source_table: teams
+    source_column: lead_employee_id
+    target_table: employees
+    target_column: employee_id
+    confidence: 0.95
+    evidence: both
+    owl_property: leadEmployee
+
+ontology:
+  namespace: "http://ake.local/ontology/amorphous-ingest#"
+  classes:
+    - name: Assignment
+      label: Assignment
+      table: assignments
+      data_properties:
+        - assignmentId: "xsd:string"  # entity_id
+        - employeeId: "xsd:string"  # foreign_key
+        - projectId: "xsd:string"  # foreign_key
+        - role: "xsd:string"  # categorical
+        - allocatedHours: "xsd:integer"  # measure
+        - startDate: "xsd:date"  # date
+    - name: Employee
+      label: Employee
+      table: employees
+      data_properties:
+        - employeeId: "xsd:string"  # entity_id
+        - firstName: "xsd:string"  # unknown
+        - lastName: "xsd:string"  # unknown
+        - title: "xsd:string"  # label
+        - teamId: "xsd:string"  # foreign_key
+        - hireDate: "xsd:date"  # date
+        - salary: "xsd:integer"  # currency
+        - remote: "xsd:boolean"  # categorical
+    - name: Project
+      label: Project
+      table: projects
+      data_properties:
+        - projectId: "xsd:string"  # entity_id
+        - name: "xsd:string"  # label
+        - teamId: "xsd:string"  # foreign_key
+        - status: "xsd:string"  # categorical
+        - startDate: "xsd:date"  # date
+        - endDate: "xsd:date"  # date
+        - budget: "xsd:integer"  # currency
+    - name: Team
+      label: Team
+      table: teams
+      data_properties:
+        - teamId: "xsd:string"  # entity_id
+        - name: "xsd:string"  # label
+        - department: "xsd:string"  # categorical
+        - leadEmployeeId: "xsd:string"  # foreign_key
+        - headcount: "xsd:integer"  # measure
+
+  object_properties:
+    - name: employee
+      label: employee
+      domain: Assignment
+      range: Employee
+      source_column: employee_id
+      confidence: 0.95
+    - name: project
+      label: project
+      domain: Assignment
+      range: Project
+      source_column: project_id
+      confidence: 0.95
+    - name: team
+      label: team
+      domain: Employee
+      range: Team
+      source_column: team_id
+      confidence: 0.95
+    - name: team
+      label: team
+      domain: Project
+      range: Team
+      source_column: team_id
+      confidence: 0.95
+    - name: leadEmployee
+      label: lead employee
+      domain: Team
+      range: Employee
+      source_column: lead_employee_id
+      confidence: 0.95

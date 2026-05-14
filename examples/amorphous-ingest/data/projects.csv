@@ -1,0 +1,9 @@
+project_id,name,team_id,status,start_date,end_date,budget
+PR001,API v3 Migration,T001,active,2025-01-15,2025-06-30,85000
+PR002,Design System v2,T002,active,2025-02-01,2025-05-31,42000
+PR003,Churn Prediction Model,T003,active,2025-01-01,2025-07-31,68000
+PR004,Onboarding Redesign,T002,completed,2024-09-01,2025-01-31,35000
+PR005,Real-time Analytics Pipeline,T003,active,2025-03-01,2025-09-30,92000
+PR006,Enterprise Portal,T001,active,2025-02-15,2025-08-31,125000
+PR007,Support Automation,T004,planning,2025-06-01,2025-12-31,55000
+PR008,Compliance Audit,T005,active,2025-04-01,2025-06-30,28000

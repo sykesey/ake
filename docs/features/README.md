@@ -16,3 +16,4 @@ Each file defines one atomic feature: a statement of intent, acceptance criteria
 | [F009](F009-tabular-data-ingestion.md) | Tabular & Columnar Data Ingestion | 1 — Ingestion | Implemented |
 | [F010](F010-knowledge-graph-ingestion.md) | Knowledge Graph Ingestion | 1 — Ingestion | Not Implemented | 
 | [F011](F011-mcp-layer.md) | MCP Server Layer: Polymorphic Resources, Tools & Data Structures | Cross-cutting |  Implemented |
+| [F012](F012-amorphous-ingest-pipeline.md) | Amorphous Ingest Pipeline | 1 - Ingestion | Implemented |

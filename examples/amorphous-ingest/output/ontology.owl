@@ -1,0 +1,234 @@
+@prefix : <http://ake.local/ontology/amorphous-ingest#> .
+@prefix ake: <http://ake.local/vocab#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://ake.local/ontology/amorphous-ingest> a owl:Ontology ;
+    rdfs:label "amorphous-ingest" ;
+    dcterms:created "2026-05-14T12:23:25.592588+00:00" ;
+    dcterms:source "/Users/bensykes/Documents/dev/ake/examples/amorphous-ingest/data" .
+
+:Assignment_allocatedHours a owl:DatatypeProperty ;
+    rdfs:label "allocated_hours" ;
+    ake:semanticRole "measure" ;
+    rdfs:domain :Assignment ;
+    rdfs:range xsd:integer .
+
+:Assignment_assignmentId a owl:DatatypeProperty ;
+    rdfs:label "assignment_id" ;
+    ake:semanticRole "entity_id" ;
+    rdfs:domain :Assignment ;
+    rdfs:range xsd:string .
+
+:Assignment_employeeId a owl:DatatypeProperty ;
+    rdfs:label "employee_id" ;
+    ake:semanticRole "foreign_key" ;
+    rdfs:domain :Assignment ;
+    rdfs:range xsd:string .
+
+:Assignment_projectId a owl:DatatypeProperty ;
+    rdfs:label "project_id" ;
+    ake:semanticRole "foreign_key" ;
+    rdfs:domain :Assignment ;
+    rdfs:range xsd:string .
+
+:Assignment_role a owl:DatatypeProperty ;
+    rdfs:label "role" ;
+    ake:semanticRole "categorical" ;
+    rdfs:domain :Assignment ;
+    rdfs:range xsd:string .
+
+:Assignment_startDate a owl:DatatypeProperty ;
+    rdfs:label "start_date" ;
+    ake:semanticRole "date" ;
+    rdfs:domain :Assignment ;
+    rdfs:range xsd:date .
+
+:Employee_employeeId a owl:DatatypeProperty ;
+    rdfs:label "employee_id" ;
+    ake:semanticRole "entity_id" ;
+    rdfs:domain :Employee ;
+    rdfs:range xsd:string .
+
+:Employee_firstName a owl:DatatypeProperty ;
+    rdfs:label "first_name" ;
+    ake:semanticRole "unknown" ;
+    rdfs:domain :Employee ;
+    rdfs:range xsd:string .
+
+:Employee_hireDate a owl:DatatypeProperty ;
+    rdfs:label "hire_date" ;
+    ake:semanticRole "date" ;
+    rdfs:domain :Employee ;
+    rdfs:range xsd:date .
+
+:Employee_lastName a owl:DatatypeProperty ;
+    rdfs:label "last_name" ;
+    ake:semanticRole "unknown" ;
+    rdfs:domain :Employee ;
+    rdfs:range xsd:string .
+
+:Employee_remote a owl:DatatypeProperty ;
+    rdfs:label "remote" ;
+    ake:semanticRole "categorical" ;
+    rdfs:domain :Employee ;
+    rdfs:range xsd:boolean .
+
+:Employee_salary a owl:DatatypeProperty ;
+    rdfs:label "salary" ;
+    ake:semanticRole "currency" ;
+    rdfs:domain :Employee ;
+    rdfs:range xsd:integer .
+
+:Employee_teamId a owl:DatatypeProperty ;
+    rdfs:label "team_id" ;
+    ake:semanticRole "foreign_key" ;
+    rdfs:domain :Employee ;
+    rdfs:range xsd:string .
+
+:Employee_title a owl:DatatypeProperty ;
+    rdfs:label "title" ;
+    ake:semanticRole "label" ;
+    rdfs:domain :Employee ;
+    rdfs:range xsd:string .
+
+:Project_budget a owl:DatatypeProperty ;
+    rdfs:label "budget" ;
+    ake:semanticRole "currency" ;
+    rdfs:domain :Project ;
+    rdfs:range xsd:integer .
+
+:Project_endDate a owl:DatatypeProperty ;
+    rdfs:label "end_date" ;
+    ake:semanticRole "date" ;
+    rdfs:domain :Project ;
+    rdfs:range xsd:date .
+
+:Project_name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    ake:semanticRole "label" ;
+    rdfs:domain :Project ;
+    rdfs:range xsd:string .
+
+:Project_projectId a owl:DatatypeProperty ;
+    rdfs:label "project_id" ;
+    ake:semanticRole "entity_id" ;
+    rdfs:domain :Project ;
+    rdfs:range xsd:string .
+
+:Project_startDate a owl:DatatypeProperty ;
+    rdfs:label "start_date" ;
+    ake:semanticRole "date" ;
+    rdfs:domain :Project ;
+    rdfs:range xsd:date .
+
+:Project_status a owl:DatatypeProperty ;
+    rdfs:label "status" ;
+    ake:semanticRole "categorical" ;
+    rdfs:domain :Project ;
+    rdfs:range xsd:string .
+
+:Project_teamId a owl:DatatypeProperty ;
+    rdfs:label "team_id" ;
+    ake:semanticRole "foreign_key" ;
+    rdfs:domain :Project ;
+    rdfs:range xsd:string .
+
+:Team_department a owl:DatatypeProperty ;
+    rdfs:label "department" ;
+    ake:semanticRole "categorical" ;
+    rdfs:domain :Team ;
+    rdfs:range xsd:string .
+
+:Team_headcount a owl:DatatypeProperty ;
+    rdfs:label "headcount" ;
+    ake:semanticRole "measure" ;
+    rdfs:domain :Team ;
+    rdfs:range xsd:integer .
+
+:Team_leadEmployeeId a owl:DatatypeProperty ;
+    rdfs:label "lead_employee_id" ;
+    ake:semanticRole "foreign_key" ;
+    rdfs:domain :Team ;
+    rdfs:range xsd:string .
+
+:Team_name a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    ake:semanticRole "label" ;
+    rdfs:domain :Team ;
+    rdfs:range xsd:string .
+
+:Team_teamId a owl:DatatypeProperty ;
+    rdfs:label "team_id" ;
+    ake:semanticRole "entity_id" ;
+    rdfs:domain :Team ;
+    rdfs:range xsd:string .
+
+:employee a owl:ObjectProperty ;
+    rdfs:label "employee" ;
+    ake:inferenceConfidence 0.95 ;
+    ake:inferenceEvidence "both" ;
+    ake:sourceColumn "employee_id" ;
+    rdfs:domain :Assignment ;
+    rdfs:range :Employee .
+
+:leadEmployee a owl:ObjectProperty ;
+    rdfs:label "lead employee" ;
+    ake:inferenceConfidence 0.95 ;
+    ake:inferenceEvidence "both" ;
+    ake:sourceColumn "lead_employee_id" ;
+    rdfs:domain :Team ;
+    rdfs:range :Employee .
+
+:project a owl:ObjectProperty ;
+    rdfs:label "project" ;
+    ake:inferenceConfidence 0.95 ;
+    ake:inferenceEvidence "both" ;
+    ake:sourceColumn "project_id" ;
+    rdfs:domain :Assignment ;
+    rdfs:range :Project .
+
+:team a owl:ObjectProperty ;
+    rdfs:label "team" ;
+    ake:inferenceConfidence 0.95 ;
+    ake:inferenceEvidence "both" ;
+    ake:sourceColumn "team_id" ;
+    rdfs:domain :Employee,
+        :Project ;
+    rdfs:range :Team .
+
+ake:inferenceConfidence a owl:AnnotationProperty ;
+    rdfs:label "inference confidence" .
+
+ake:inferenceEvidence a owl:AnnotationProperty ;
+    rdfs:label "inference evidence" .
+
+ake:sourceColumn a owl:AnnotationProperty ;
+    rdfs:label "source column" .
+
+:Team a owl:Class ;
+    rdfs:label "Team" ;
+    ake:rowCount 5 ;
+    ake:sourceTable "teams" ;
+    rdfs:comment "Represents a row in the 'teams' table." .
+
+:Assignment a owl:Class ;
+    rdfs:label "Assignment" ;
+    ake:rowCount 20 ;
+    ake:sourceTable "assignments" ;
+    rdfs:comment "Represents a row in the 'assignments' table." .
+
+:Project a owl:Class ;
+    rdfs:label "Project" ;
+    ake:rowCount 8 ;
+    ake:sourceTable "projects" ;
+    rdfs:comment "Represents a row in the 'projects' table." .
+
+:Employee a owl:Class ;
+    rdfs:label "Employee" ;
+    ake:rowCount 15 ;
+    ake:sourceTable "employees" ;
+    rdfs:comment "Represents a row in the 'employees' table." .
+

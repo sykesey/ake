@@ -1,0 +1,6 @@
+team_id,name,department,lead_employee_id,headcount
+T001,Core Platform,Engineering,E001,5
+T002,Product Design,Design,E006,3
+T003,Data Science,Engineering,E009,3
+T004,Customer Success,Operations,E012,3
+T005,Finance & Legal,Operations,E015,1

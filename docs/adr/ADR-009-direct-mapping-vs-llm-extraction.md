@@ -47,3 +47,7 @@ The compiler loop (Layer 4) still applies to structured domains — it iterates 
 - The compiler loop bootstrap step for structured domains outputs a column-selection config (which columns map to which artifact fields) rather than an extraction prompt; the same eval-driven iteration applies
 - A `mapping_error` failure class is added to the grader (alongside the six classes in the dev guide) to capture cases where a column exists but the mapping produced the wrong artifact field value
 - Column selection is bounded by the artifact schema: only columns that correspond to a schema field are mapped; unmapped columns are stored in `metadata.unmapped_columns` for future schema iteration
+
+## Extension — Amorphous Schema Derivation (F012)
+
+ADR-012 extends this principle to schema discovery itself: the semantic role of a column (entity key, foreign key, currency amount, date, etc.) is classified deterministically from its name rather than via LLM analysis. This is the direct-mapping principle applied one level higher — not "use the column value directly" but "use the column name directly to classify the column's role". The same rationale applies: real-world column naming conventions are strong enough signals that LLM involvement adds cost and non-determinism without meaningfully improving accuracy.
