@@ -24,6 +24,9 @@ Source documents / tables / graphs
   Cited, shape-conformant QueryResult
 ```
 
+![Amorphous Ingest Viewer](examples/amorphous-ingest/assets/image.png)
+
+
 ---
 
 ## Four Layers
