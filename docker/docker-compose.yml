@@ -23,12 +23,11 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+asyncpg://ake:ake@postgres:5432/ake
-      LLM_PROVIDER: anthropic
-      LLM_MODEL: claude-sonnet-4-6
     env_file:
       - ../.env.local
     ports:
-      - "8000:8000"
+      - "8000:8000"   # health/ready endpoint
+      - "8001:8001"   # MCP SSE endpoint
     volumes:
       - ../ake:/app/ake  # live reload in dev
 

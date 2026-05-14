@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "Running database migrations..."
-alembic upgrade head
+python -m alembic upgrade head
 
 echo "Starting AKE..."
 exec "$@"

@@ -46,8 +46,9 @@ class ArtifactCompiler:
 
         doc_id = elements[0].doc_id
         acl_principals: list[str] = elements[0].metadata.get("acl_principals", [])
+        doc_metadata = dict(elements[0].metadata)
 
-        messages = build_extraction_messages(elements, schema)
+        messages = build_extraction_messages(elements, schema, doc_metadata=doc_metadata)
         request = LLMRequest(
             messages=messages,
             system=SYSTEM_PROMPT,
@@ -121,6 +122,20 @@ class ArtifactCompiler:
         )
 
         artifact, failed = verify_citations(artifact, elements)
+
+        # Post-verification backfill: for schema fields that the verifier nulled
+        # (no element-text citation available), fall back to doc-level metadata
+        # when it carries an authoritative value.  These fields are stored without
+        # a citation; _fields_cited_ratio reflects that honestly.
+        _METADATA_FALLBACK_KEYS = {"department", "owner", "classification"}
+        for field_name, spec in schema.fields.items():
+            if artifact.payload.get(field_name) is not None:
+                continue  # already populated — don't overwrite
+            meta_val = doc_metadata.get(field_name)
+            if meta_val is not None and field_name in _METADATA_FALLBACK_KEYS:
+                artifact.payload[field_name] = meta_val
+                if field_name in failed:
+                    failed.remove(field_name)
 
         logger.info(
             "artifact_compiled artifact_id=%s entity_id=%s fields=%d failed=%d",

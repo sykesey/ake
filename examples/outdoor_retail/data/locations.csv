@@ -1,0 +1,6 @@
+location_id,name,city,state,region,store_type,opened_date,sq_ft,phone
+L001,Denver Flagship,Denver,CO,Mountain West,flagship,2015-03-15,12000,303-555-0101
+L002,Seattle Hub,Seattle,WA,Pacific Northwest,full_service,2017-08-01,9500,206-555-0102
+L003,Salt Lake City,Salt Lake City,UT,Mountain West,full_service,2018-11-10,8000,801-555-0103
+L004,Bozeman,Bozeman,MT,Northern Rockies,boutique,2020-06-20,5500,406-555-0104
+L005,Bend,Bend,OR,Pacific Northwest,boutique,2021-09-01,6000,541-555-0105

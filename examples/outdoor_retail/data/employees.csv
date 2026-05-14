@@ -1,0 +1,21 @@
+employee_id,first_name,last_name,department,title,location_id,hire_date,salary,status,manager_id
+E001,Jordan,Hayes,Operations,Store Manager,L001,2015-03-15,82000,active,
+E002,Morgan,Reyes,Sales Floor,Senior Sales Associate,L001,2016-05-10,52000,active,E001
+E003,Taylor,Nguyen,Outdoor Education,Lead Guide,L001,2016-08-22,58000,active,E001
+E004,Casey,Patel,Inventory,Inventory Manager,L001,2017-01-30,61000,active,E001
+E005,Riley,Brooks,Sales Floor,Sales Associate,L001,2018-03-12,44000,active,E002
+E006,Avery,Kim,Sales Floor,Sales Associate,L001,2019-07-08,44000,active,E002
+E007,Drew,Okafor,Outdoor Education,Guide,L001,2020-02-17,48000,active,E003
+E008,Sam,Delgado,Marketing,Marketing Coordinator,L001,2021-06-01,56000,active,E001
+E009,Quinn,Torres,Operations,Store Manager,L002,2017-08-01,79000,active,
+E010,Hayden,Park,Sales Floor,Senior Sales Associate,L002,2018-02-20,51000,active,E009
+E011,Skylar,Johnson,Outdoor Education,Lead Guide,L002,2018-09-15,57000,active,E009
+E012,Peyton,Martinez,Inventory,Inventory Associate,L002,2019-04-03,41000,active,E009
+E013,Cameron,Singh,Sales Floor,Sales Associate,L002,2020-11-10,43000,active,E010
+E014,Rowan,Chen,Operations,Store Manager,L003,2018-11-10,76000,active,
+E015,Emerson,Yamamoto,Sales Floor,Senior Sales Associate,L003,2019-06-14,50000,active,E014
+E016,Finley,Osei,Outdoor Education,Guide,L003,2020-08-01,46000,active,E014
+E017,Sage,Rivera,Inventory,Inventory Associate,L003,2021-03-22,40000,active,E014
+E018,Lennon,Adeyemi,Operations,Store Manager,L004,2020-06-20,72000,active,
+E019,Wren,Murphy,Sales Floor,Sales Associate,L004,2021-01-11,42000,active,E018
+E020,Blake,Owens,Operations,Store Manager,L005,2021-09-01,73000,active,

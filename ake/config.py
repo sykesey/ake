@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env.local", env_file_encoding="utf-8")
 
     # Database
-    database_url: str
+    database_url: str = "postgresql+asyncpg://ake:ake@localhost/ake"
     db_pool_size: int = 10
     db_max_overflow: int = 20
     db_echo: bool = False
@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     # MCP
     mcp_host: str = "0.0.0.0"
     mcp_port: int = 8000
+    mcp_sse_port: int = 8001
+
+    # MCP SSL (optional — set to enable HTTPS on the SSE transport)
+    mcp_ssl_certfile: str | None = None
+    mcp_ssl_keyfile: str | None = None
+    mcp_ssl_keyfile_password: str | None = None
 
     # Observability
     log_level: str = "INFO"

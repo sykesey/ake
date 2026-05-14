@@ -33,10 +33,14 @@ def plan(query: Query) -> RetrievalPlan:
         if key in query.filters:
             structured_filters[key] = query.filters[key]
 
-    # If we have structured filters we can do a direct Postgres lookup;
-    # otherwise fall back to semantic search.
+    # If we have structured filters we can do a direct Postgres lookup.
+    # If contexts were explicitly provided, do a broad fetch (all artifacts of
+    # those types) and let the composer answer the NL question — using the full
+    # question string as an ILIKE pattern against payload text never matches.
+    # Only fall back to text search when types were inferred and nothing else
+    # constrains the query.
     semantic_query: str | None = None
-    if not structured_filters:
+    if not structured_filters and not query.contexts:
         semantic_query = query.ask
 
     return RetrievalPlan(

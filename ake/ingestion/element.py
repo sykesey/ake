@@ -4,10 +4,10 @@ import hashlib
 from dataclasses import dataclass, field
 from typing import Literal
 
-ElementType = Literal["title", "paragraph", "table", "list", "figure", "header"]
+ElementType = Literal["title", "paragraph", "table", "list", "figure", "header", "row"]
 
 VALID_ELEMENT_TYPES: frozenset[str] = frozenset(
-    {"title", "paragraph", "table", "list", "figure", "header"}
+    {"title", "paragraph", "table", "list", "figure", "header", "row"}
 )
 
 
@@ -31,3 +31,13 @@ def compute_element_id(doc_id: str, index: int, el_type: str, text: str) -> str:
     """Stable ID unique within a document: position + type + first 100 chars of text."""
     content = f"{doc_id}:{index}:{el_type}:{text[:100]}"
     return hashlib.sha256(content.encode()).hexdigest()[:16]
+
+
+def compute_tabular_doc_id(source_uri: str, schema_fingerprint: str, content_hash: str) -> str:
+    """Stable doc_id for tabular sources: hash of (source_uri, schema_fingerprint, content_hash).
+
+    A schema change (column added, renamed, retyped) or a data change both produce a new
+    doc_id, preventing artifacts compiled against an old schema from being silently served.
+    """
+    composite = f"tabular:{source_uri}:{schema_fingerprint}:{content_hash}"
+    return hashlib.sha256(composite.encode()).hexdigest()

@@ -14,9 +14,9 @@ COPY ake/ ./ake/
 COPY alembic.ini ./
 COPY docker/entrypoint.sh ./
 
-EXPOSE 8000
+EXPOSE 8000 8001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-  CMD python -c "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["python", "-m", "ake"]
+CMD ["python", "-m", "ake", "--sse"]

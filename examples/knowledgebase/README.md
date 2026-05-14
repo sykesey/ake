@@ -1,19 +1,21 @@
 # Example: Company-wide Knowledge Base
 
-This example walks through the AKE ingestion pipeline (F001) on a set of
-realistic company documents — an engineering handbook, an HR handbook, and
-a security policy — showing how raw HTML is turned into normalised, citable
-Element records ready for semantic search and artifact compilation.
+This example demonstrates the complete AKE pipeline on realistic company
+documents — an engineering handbook, an HR handbook, and a security policy —
+from raw HTML to a queryable MCP server agents can consume.
 
 ## What you'll see
 
-| Step | Concept demonstrated |
-|------|---------------------|
-| 1 — Ingest | Parsing HTML → Element records with stable `doc_id` |
-| 2 — Section filtering | `section_path` navigation without raw text search |
-| 3 — Idempotency | Same file → same `doc_id`; store skips re-parse |
-| 4 — ACL propagation | Box/SharePoint group IDs on every element |
-| 5 — Element JSON | What actually lands in the `elements` table |
+| Step | Script | Concept demonstrated |
+|------|--------|---------------------|
+| 1 — Ingest | `ingest.py` | Parsing HTML → Element records with stable `doc_id` |
+| 2 — Section filtering | `ingest.py` | `section_path` navigation without raw text search |
+| 3 — Idempotency | `ingest.py` | Same file → same `doc_id`; store skips re-parse |
+| 4 — ACL propagation | `ingest.py` | Box/SharePoint group IDs on every element |
+| 5 — Element JSON | `ingest.py` | What actually lands in the `elements` table |
+| 6 — Compile | `mcp_server.py` | LLM extraction → typed, cited `DomainArtifact` records |
+| 7 — Register | `mcp_server.py` | Schema registry for agent discovery |
+| 8 — Serve | `mcp_server.py` | MCP server over SSE with AKE tools + resources |
 
 ## Prerequisites
 
@@ -22,7 +24,7 @@ Element records ready for semantic search and artifact compilation.
 uv sync --group ingestion
 ```
 
-## Run it
+## Run the ingestion walkthrough
 
 ```bash
 # Parse documents in-memory, print results to stdout (no database needed):
@@ -32,6 +34,67 @@ uv run python examples/knowledgebase/ingest.py
 export DATABASE_URL=postgresql+asyncpg://ake:ake@localhost/ake
 alembic upgrade head
 uv run python examples/knowledgebase/ingest.py --store
+```
+
+## Run the full pipeline + MCP server
+
+This runs ingestion, artifact compilation, MCP registry registration, and starts
+an MCP server over SSE.  Agents can then query the knowledge base through the
+standard AKE MCP interface.
+
+```bash
+# Prerequisites
+export DATABASE_URL=postgresql+asyncpg://ake:ake@localhost/ake
+export LLM_API_KEY=your-api-key           # or set llm_api_key in .env.local
+alembic upgrade head
+
+# Full pipeline: ingest → compile → register → serve
+uv run python examples/knowledgebase/mcp_server.py
+
+# Custom host/port
+uv run python examples/knowledgebase/mcp_server.py --port 8080 --host 0.0.0.0
+
+# Skip ingestion + compilation (serve existing artifacts from the database)
+uv run python examples/knowledgebase/mcp_server.py --no-compile
+```
+
+The server exposes:
+
+**Tools**
+| Tool | Description |
+|------|-------------|
+| `ake_list_artifact_types` | Discover the `knowledgebase` domain (`kb_policy`, `kb_procedure`) |
+| `ake_describe_schema` | Get field-level schemas for artifact types |
+| `ake_query` | Natural-language questions against compiled artifacts |
+| `ake_get_artifact` | Direct retrieval by `entity_id` |
+| `ake_list_entities` | Enumerate all compiled entities |
+
+**Resources**
+| Resource | Returns |
+|----------|---------|
+| `ake://domains` | All registered domains |
+| `ake://domains/knowledgebase` | Knowledgebase domain details + schemas |
+| `ake://schema/kb_policy` | JSON Schema for policy artifacts |
+| `ake://schema/kb_procedure` | JSON Schema for procedure artifacts |
+| `ake://artifacts/{type}/{entity_id}` | Most recent compiled artifact |
+| `ake://citations/{artifact_id}` | All citations for an artifact |
+| `ake://elements/{doc_id}/{element_id}` | Raw source element |
+
+### Example MCP client usage
+
+```python
+# Agents issue queries like:
+ake_query(
+    ask="What is the incident response procedure?",
+    shape={"procedure_name": "...", "summary": "...", "sla": None},
+    contexts=["kb_procedure"]
+)
+
+ake_query(
+    ask="List all data classification policies",
+    shape={"policies": [{"policy_name": "...", "classification": "..."}]},
+    contexts=["kb_policy"]
+)
 ```
 
 ## Source documents

@@ -6,15 +6,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ake.ingestion.element import Element, compute_doc_id
+from ake.ingestion.element import Element, compute_doc_id, compute_tabular_doc_id
 from ake.ingestion.normalizer import normalize
+from ake.ingestion.parsers.arrow_ipc import ArrowIPCParser
 from ake.ingestion.parsers.base import BaseParser
+from ake.ingestion.parsers.csv_parser import CsvParser
 from ake.ingestion.parsers.docx import DocxParser
 from ake.ingestion.parsers.html import HtmlParser
+from ake.ingestion.parsers.parquet import ParquetParser
 from ake.ingestion.parsers.pdf import PDFParser
+from ake.ingestion.tabular_normalizer import normalize_tabular
 
 if TYPE_CHECKING:
     from ake.store.element_store import ElementStore
+
+_TABULAR_SUFFIXES: frozenset[str] = frozenset({".parquet", ".csv", ".arrow", ".feather", ".arrows"})
 
 
 @dataclass
@@ -32,6 +38,10 @@ def _parser_for_path(path: Path) -> BaseParser:
         return DocxParser()
     if suffix in (".html", ".htm"):
         return HtmlParser()
+    if suffix in _TABULAR_SUFFIXES:
+        raise ValueError(
+            f"'{suffix}' is a tabular format — use IngestionPipeline.ingest_tabular_file() instead"
+        )
     raise ValueError(f"No parser registered for extension '{suffix}'")
 
 
@@ -65,8 +75,14 @@ class IngestionPipeline:
 
         Idempotent: if the doc_id already exists in the store, returns the
         stored elements without re-parsing.
+
+        Tabular formats (.parquet, .csv, .arrow, .feather, .arrows) are
+        automatically routed to :meth:`ingest_tabular_file`.
         """
         path = Path(path)
+        if path.suffix.lower() in _TABULAR_SUFFIXES:
+            return await self.ingest_tabular_file(path, metadata=metadata)
+
         metadata = metadata or {}
         content = path.read_bytes()
         doc_id = compute_doc_id(content)
@@ -96,6 +112,88 @@ class IngestionPipeline:
             doc_id=doc_id,
             elements=elements,
             source_url=base_meta["source_url"],
+        )
+
+    async def ingest_tabular_file(
+        self,
+        path: Path | str,
+        metadata: dict | None = None,
+        dataset_name: str | None = None,
+        batch_size: int = 10_000,
+    ) -> IngestionResult:
+        """Ingest a tabular file (Parquet, CSV, Arrow IPC) into the element store.
+
+        doc_id is a stable hash of (source_uri, schema_fingerprint, content_hash),
+        so schema changes and data changes both invalidate it (F009).
+
+        Rows are streamed in batches — the full dataset is never loaded into memory.
+        Sparse rows (all cells null) are silently dropped.
+
+        Args:
+            path:         Path to the tabular file.
+            metadata:     Extra fields merged into every element's metadata.
+            dataset_name: Override the dataset name (defaults to parent directory name).
+            batch_size:   Rows per batch for Parquet / row-count hint for others.
+        """
+        path = Path(path)
+        metadata = metadata or {}
+        suffix = path.suffix.lower()
+
+        if suffix == ".csv":
+            parser: ParquetParser | CsvParser | ArrowIPCParser = CsvParser()
+        elif suffix in (".arrow", ".feather", ".arrows"):
+            parser = ArrowIPCParser()
+        else:
+            parser = ParquetParser()
+
+        source_uri = metadata.get("source_url", str(path))
+        ds_name = dataset_name or path.parent.name or path.stem
+        tbl_name = path.stem
+
+        schema = parser.get_schema(path)
+        fingerprint = parser.schema_fingerprint(schema)
+        content_hash = compute_doc_id(path.read_bytes())
+        doc_id = compute_tabular_doc_id(source_uri, fingerprint, content_hash)
+        partition = parser.partition_keys(path) if hasattr(parser, "partition_keys") else {}
+
+        if self._store is not None and await self._store.exists(doc_id):
+            elements = await self._store.get_by_doc_id(doc_id)
+            return IngestionResult(
+                doc_id=doc_id,
+                elements=elements,
+                source_url=source_uri,
+            )
+
+        base_meta = {
+            "source_url": source_uri,
+            "ingested_at": datetime.now(timezone.utc).isoformat(),
+            **metadata,
+        }
+
+        if suffix == ".csv":
+            batches = parser.iter_batches(path)
+        elif suffix in (".arrow", ".feather", ".arrows"):
+            batches = parser.iter_batches(path)
+        else:
+            batches = parser.iter_batches(path, batch_size=batch_size)
+
+        elements = normalize_tabular(
+            batches=batches,
+            schema=schema,
+            doc_id=doc_id,
+            dataset_name=ds_name,
+            table_name=tbl_name,
+            metadata_base=base_meta,
+            partition=partition or None,
+        )
+
+        if self._store is not None:
+            await self._store.save(elements)
+
+        return IngestionResult(
+            doc_id=doc_id,
+            elements=elements,
+            source_url=source_uri,
         )
 
     async def ingest_bytes(

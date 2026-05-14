@@ -63,7 +63,7 @@ class LLMRouter:
         if "/" in m:
             return m
         provider = self._settings.llm_provider
-        if provider in ("anthropic", "openai", "azure", "ollama"):
+        if provider in ("anthropic", "openai", "azure", "ollama", "openrouter"):
             return f"{provider}/{m}" if provider != "azure" else m
         return m
 

@@ -1,8 +1,16 @@
-"""Composer — reshapes fetched artifacts into ``query.shape`` via a small LLM call.
+"""Composer — reshapes fetched artifacts into ``query.shape``.
 
-The composer does NOT infer or estimate. If a value is not present in the
-provided artifacts, it sets the field to null. Citations are threaded through
-from artifact field_citations into the result's flat citation list.
+Strategy (in order):
+  1. Direct payload mapping: for each scalar leaf in shape, find the first
+     artifact whose payload has a matching key and use the value directly.
+     No LLM, no cost, no silent failure.
+  2. LLM reshape: called only when direct mapping leaves null scalars or empty
+     list fields.  Fills gaps from direct mapping; does NOT overwrite values
+     that direct mapping already populated.
+
+Citations are threaded only for fields whose data value is non-null (fixes the
+phantom-citation bug where null data still received citations from the artifact
+store).
 """
 from __future__ import annotations
 
@@ -20,6 +28,7 @@ from ake.config import settings as _default_settings
 from ake.query.interface import Citation, Query, QueryResult
 
 logger = structlog.get_logger()
+
 
 _COMPOSER_SYSTEM = """You are a response composer. You reshape pre-retrieved knowledge artifacts into a structured response.
 
@@ -57,10 +66,20 @@ async def compose(
             token_cost=0,
         )
 
-    artifacts_json = _artifacts_to_composer_json(artifacts)
-    shape_json = json.dumps(query.shape, indent=2)
+    # ── Phase 1: direct payload mapping ──────────────────────────────────────
+    # Populate shape fields directly from artifact payloads without an LLM call.
+    # This handles the common case where shape field names match payload field
+    # names exactly and is reliable regardless of LLM availability.
+    data = _direct_map_from_payloads(query.shape, artifacts)
 
-    prompt = f"""Question: {query.ask}
+    # ── Phase 2: LLM reshape (only when needed) ───────────────────────────────
+    # Call the LLM only if direct mapping left null scalars or empty list fields
+    # — i.e., field-name mismatches, synthesis, or cardinality needs.
+    if _has_unfilled_fields(data, query.shape):
+        artifacts_json = _artifacts_to_composer_json(artifacts)
+        shape_json = json.dumps(query.shape, indent=2)
+
+        prompt = f"""Question: {query.ask}
 
 Required response shape:
 {shape_json}
@@ -70,40 +89,43 @@ Artifacts (each with payload and citations):
 
 Return only valid JSON matching the required shape."""
 
-    try:
-        model = _model_string(settings)
-        kwargs: dict[str, Any] = dict(
-            model=model,
-            messages=[
-                {"role": "system", "content": _COMPOSER_SYSTEM},
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.0,
-            max_tokens=4096,
-            timeout=settings.llm_timeout_seconds,
-        )
-        if settings.llm_api_key:
-            kwargs["api_key"] = settings.llm_api_key
-        if settings.llm_base_url:
-            kwargs["base_url"] = settings.llm_base_url
-
-        response = await litellm.acompletion(**kwargs)  # type: ignore[call-overload]
-        usage = getattr(response, "usage", None)
-        if usage:
-            token_cost = getattr(usage, "prompt_tokens", 0) + getattr(
-                usage, "completion_tokens", 0
+        try:
+            model = _model_string(settings)
+            kwargs: dict[str, Any] = dict(
+                model=model,
+                messages=[
+                    {"role": "system", "content": _COMPOSER_SYSTEM},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.0,
+                max_tokens=4096,
+                timeout=settings.llm_timeout_seconds,
             )
+            if settings.llm_api_key:
+                kwargs["api_key"] = settings.llm_api_key
+            if settings.llm_base_url:
+                kwargs["base_url"] = settings.llm_base_url
 
-        choices: list[Any] = getattr(response, "choices", [])
-        content = getattr(choices[0].message, "content", "") if choices else ""
-        data = _parse_composer_output(content, query.shape)
-    except Exception:
-        logger.exception("composer_llm_failed")
-        # On LLM failure, return null-shaped data with artifacts_used still populated.
-        data = _null_shape(query.shape)
-        token_cost = 0
+            response = await litellm.acompletion(**kwargs)  # type: ignore[call-overload]
+            usage = getattr(response, "usage", None)
+            if usage:
+                token_cost = getattr(usage, "prompt_tokens", 0) + getattr(
+                    usage, "completion_tokens", 0
+                )
 
-    # Thread citations: only for fields that are actually populated in data.
+            choices: list[Any] = getattr(response, "choices", [])
+            content = getattr(choices[0].message, "content", "") if choices else ""
+            llm_data = _parse_composer_output(content, query.shape)
+
+            # Merge: LLM values fill only fields that direct mapping left null/empty.
+            # Direct-mapped values (from verified artifact payloads) take priority.
+            _merge_llm_into(data, llm_data)
+
+        except Exception:
+            logger.exception("composer_llm_failed")
+            # Direct-mapped values survive; unfilled fields remain null.
+
+    # ── Citations: only for non-null fields ───────────────────────────────────
     citations: list[Citation] = []
     if query.ground:
         citations = _thread_citations(data, artifacts)
@@ -119,7 +141,68 @@ Return only valid JSON matching the required shape."""
     )
 
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+# ── Direct mapping helpers ────────────────────────────────────────────────────
+
+
+def _direct_map_from_payloads(
+    shape: dict[str, Any],
+    artifacts: list[DomainArtifact],
+) -> dict[str, Any]:
+    """Populate shape fields from artifact payloads without an LLM call.
+
+    For each scalar leaf in ``shape``, finds the first artifact whose payload
+    has a matching key with a non-null value. Nested dicts are recursed; list
+    fields are left empty for the LLM phase.
+    """
+    result: dict[str, Any] = {}
+    for key, spec in shape.items():
+        if isinstance(spec, list):
+            # List cardinality is handled by the LLM phase.
+            result[key] = []
+        elif isinstance(spec, dict):
+            result[key] = _direct_map_from_payloads(spec, artifacts)
+        else:
+            found = next(
+                (
+                    a.payload[key]
+                    for a in artifacts
+                    if key in a.payload and a.payload[key] is not None
+                ),
+                None,
+            )
+            result[key] = found
+    return result
+
+
+def _has_unfilled_fields(data: dict[str, Any], shape: dict[str, Any]) -> bool:
+    """Return True if any field in data is null or any list field is still empty."""
+    for key, val in data.items():
+        if val is None:
+            return True
+        if isinstance(val, list) and not val and isinstance(shape.get(key), list):
+            return True
+        if isinstance(val, dict):
+            if _has_unfilled_fields(val, shape.get(key) or {}):
+                return True
+    return False
+
+
+def _merge_llm_into(base: dict[str, Any], overlay: dict[str, Any]) -> None:
+    """Fill null/empty slots in ``base`` with values from ``overlay``.
+
+    Direct-mapped values in ``base`` are never overwritten; the LLM output
+    only fills what direct mapping could not.
+    """
+    for key, val in overlay.items():
+        if key not in base or base[key] is None:
+            base[key] = val
+        elif isinstance(base[key], list) and not base[key] and isinstance(val, list) and val:
+            base[key] = val
+        elif isinstance(base[key], dict) and isinstance(val, dict):
+            _merge_llm_into(base[key], val)
+
+
+# ── Existing helpers (unchanged) ─────────────────────────────────────────────
 
 
 def _model_string(settings: Settings) -> str:
@@ -205,11 +288,7 @@ def _thread_citations(
     data: dict[str, Any],
     artifacts: list[DomainArtifact],
 ) -> list[Citation]:
-    """Build a flat citation list for all populated fields in data.
-
-    Matches field names in ``data`` against artifact field_citations keys.
-    For nested shapes, recurse. For list values, iterate.
-    """
+    """Build a flat citation list for all non-null populated fields in data."""
     citations: list[Citation] = []
     _collect_citations(data, artifacts, citations, prefix="")
     return citations
@@ -228,22 +307,23 @@ def _collect_citations(
         for key, val in node.items():
             field_path = f"{prefix}.{key}" if prefix else key
             if val is not None:
+                # Recurse into nested dicts/lists and look up citations only
+                # for fields that are actually populated — null fields must not
+                # receive phantom citations from the artifact store.
                 _collect_citations(val, artifacts, citations, field_path)
-            # Look up citation for this field in artifact field_citations.
-            for a in artifacts:
-                cite = a.field_citations.get(field_path)
-                if cite is None:
-                    # Try matching just the leaf key.
-                    cite = a.field_citations.get(key)
-                if cite is not None:
-                    citations.append(
-                        Citation(
-                            field=field_path,
-                            element_id=cite.element_id,
-                            verbatim_span=_verbatim_from_citation(cite),
-                            doc_id=a.doc_id,
+                for a in artifacts:
+                    cite = a.field_citations.get(field_path)
+                    if cite is None:
+                        cite = a.field_citations.get(key)
+                    if cite is not None:
+                        citations.append(
+                            Citation(
+                                field=field_path,
+                                element_id=cite.element_id,
+                                verbatim_span=_verbatim_from_citation(cite),
+                                doc_id=a.doc_id,
+                            )
                         )
-                    )
 
     elif isinstance(node, list):
         for idx, item in enumerate(node):

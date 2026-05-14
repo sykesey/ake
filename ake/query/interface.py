@@ -76,6 +76,7 @@ class QueryResult:
         artifacts_used: artifact_ids that contributed to this result
         latency_ms: wall time in milliseconds
         token_cost: total tokens consumed (composer only; planner may add LLM cost later)
+        query_id: unique ID for this query execution; pass to ake_get_trace
     """
 
     data: dict[str, Any]
@@ -83,3 +84,4 @@ class QueryResult:
     artifacts_used: list[str]
     latency_ms: int
     token_cost: int
+    query_id: str = ""
