@@ -1,6 +1,6 @@
 # Amorphous Knowledge Engine (AKE)
 
-A domain-agnostic, pre-compiled artifact retrieval system for agentic workflows. AKE ingests raw knowledge from any source — documents, tables, or knowledge graphs — extracts typed, cited facts at ingest time, and serves them to agents through a declarative query interface and an MCP server layer.
+A domain-agnostic, pre-compiled artifact retrieval system for agentic workflows. AKE ingests raw knowledge from any source — documents, tables (Upcoming - Knowledge Graphs) — extracts typed, cited facts at ingest time, and serves them to agents through a declarative query interface and an MCP server layer.
 
 ---
 
@@ -39,11 +39,11 @@ Source documents / tables / graphs
 
 ## Supported Source Types
 
-| Source | Ingestion feature |
-|---|---|
-| PDF, DOCX, HTML | [F001](docs/features/F001-document-ingestion.md) |
-| Parquet, CSV, Arrow, database extracts | [F009](docs/features/F009-tabular-data-ingestion.md) |
-| RDF, property graphs (GraphML, Cypher dump) | [F010](docs/features/F010-knowledge-graph-ingestion.md) |
+| Source | Ingestion feature | Status |
+|---|---|---|
+| PDF, DOCX, HTML | [F001](docs/features/F001-document-ingestion.md) | Untested |
+| Parquet, CSV, Arrow, database extracts | [F009](docs/features/F009-tabular-data-ingestion.md) | Tested |
+| RDF, property graphs (GraphML, Cypher dump) | [F010](docs/features/F010-knowledge-graph-ingestion.md) | Coming Soon |
 
 ---
 
@@ -71,19 +71,13 @@ AKE exposes all capabilities as an MCP server. Agents connect via the standard M
 | [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
 | [docs/knowledge-engine-dev-guide.md](docs/knowledge-engine-dev-guide.md) | Full development guide: schemas, prompts, test contracts, build order |
 
----
+## Quickstart 
 
-## Build Order
+Requirements: Python 3.12 
 
-Build layers in sequence; do not start a layer until the previous layer's handoff criteria are met.
+Read the example project documentation under [examples/knowledgebase](examples/knowledgebase/README.md) and follow the instructions to run the Knowledge Base example as an MCP Server, command line interface or web-based visualiser.
 
-```
-Phase 0 (1–2 days)    F000: Python scaffold, Postgres, Docker, LLM router wired and tested
-Phase 1 (1–2 days)    Layer 1: Ingestion pipeline for one source type
-Phase 2 (3–5 days)    Layer 2: Hand-written artifact schema for Domain 1
-Phase 3 (2–3 days)    Layer 3: Planner + fetcher + composer end-to-end
-Phase 4 (5–7 days)    Layer 2 (again): Domain 2 → extract reusable skills
-Phase 5 (1–2 weeks)   Layer 4: Compiler loop + eval sets for both domains
+
 ```
 
 Full handoff criteria and test contracts are in the [dev guide](docs/knowledge-engine-dev-guide.md).
