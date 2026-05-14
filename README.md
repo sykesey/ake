@@ -75,7 +75,10 @@ AKE exposes all capabilities as an MCP server. Agents connect via the standard M
 
 Requirements: Python 3.12 
 
-Read the example project documentation under [examples/knowledgebase](examples/knowledgebase/README.md) and follow the instructions to run the Knowledge Base example as an MCP Server, command line interface or web-based visualiser.
+***Knowledge Base*** - an example simple company-based Knowledge Base. [examples/knowledgebase](examples/knowledgebase/README.md) and follow the instructions to run the example as an MCP Server, command line interface or web-based visualiser.
+
+***Outdoor Retail*** - an example Outdoor Retailer, with Sales, Product, Location and HR data. [examples/outdoor_retail](examples/outdoor_retail/README.md) and follow the instructions to run the example as an MCP Server, command line interface or web-based visualiser.
+
 
 
 Full handoff criteria and test contracts are in the [dev guide](docs/knowledge-engine-dev-guide.md).
