@@ -108,14 +108,15 @@ The viewer provides:
 Exposes the dataset to any MCP-compatible agent with no database required. Ingests the data at startup and holds it in memory.
 
 ```bash
-# SSE transport (default)
+# SSE transport (default) — connect any MCP client to http://127.0.0.1:8001/sse
 uv run python examples/amorphous-ingest/mcp_server.py
 
-# stdio transport (for Claude Desktop or direct agent use)
+# stdio transport — for Claude Desktop and direct agent use
 uv run python examples/amorphous-ingest/mcp_server.py --stdio
 
-# Custom data directory and host/port
+# Custom data directory, host, and port
 uv run python examples/amorphous-ingest/mcp_server.py --data path/to/data/ --host 0.0.0.0 --port 8001
+uv run python examples/amorphous-ingest/mcp_server.py --dataset-name acme --port 8002
 ```
 
 **MCP resources:**
@@ -147,6 +148,59 @@ ake://amorphous/{dataset}/ontology         — full OWL class model
 4. get_relationships()     → understand how tables connect
 5. describe_ontology()     → explore the full OWL model
 ```
+
+#### Adding to Claude Desktop
+
+Claude Desktop uses stdio transport. Open your Claude Desktop config file:
+
+| OS | Path |
+|---|---|
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+
+Add an entry under `mcpServers`, replacing `/absolute/path/to/ake` with the actual path to this repository:
+
+```json
+{
+  "mcpServers": {
+    "ake-amorphous-ingest": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "examples/amorphous-ingest/mcp_server.py",
+        "--stdio"
+      ],
+      "cwd": "/absolute/path/to/ake"
+    }
+  }
+}
+```
+
+To point it at a different data directory or give the dataset a custom name:
+
+```json
+{
+  "mcpServers": {
+    "ake-amorphous-ingest": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "examples/amorphous-ingest/mcp_server.py",
+        "--stdio",
+        "--data", "/absolute/path/to/your/data",
+        "--dataset-name", "mydata"
+      ],
+      "cwd": "/absolute/path/to/ake"
+    }
+  }
+}
+```
+
+Restart Claude Desktop after saving. The server appears in the MCP tools panel (hammer icon). Claude will ingest and index the data on first connection and keep it in memory for the session.
+
+> **Tip:** The server prints a startup summary to stderr (table counts, relationship count, namespace) which Claude Desktop surfaces in the connection log if anything goes wrong.
 
 ---
 
