@@ -83,6 +83,51 @@ The server exposes:
 | `ake://citations/{artifact_id}` | All citations for an artifact |
 | `ake://elements/{doc_id}/{element_id}` | Raw source element |
 
+### Adding to Claude Desktop
+
+Open your Claude Desktop config file:
+
+| OS | Path |
+| --- | --- |
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+
+Add an entry under `mcpServers`. The server requires a running Postgres instance and an LLM API key — pass both via the `env` block:
+
+```json
+{
+  "mcpServers": {
+    "ake-knowledgebase": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "examples/knowledgebase/mcp_server.py",
+        "--stdio",
+        "--no-compile"
+      ],
+      "cwd": "/absolute/path/to/ake",
+      "env": {
+        "DATABASE_URL": "postgresql+asyncpg://ake:ake@localhost/ake",
+        "LLM_API_KEY": "your-api-key"
+      }
+    }
+  }
+}
+```
+
+Run the full pipeline once before connecting Claude (this performs ingestion and LLM extraction — it only needs to run once):
+
+```bash
+cd /absolute/path/to/ake
+export DATABASE_URL=postgresql+asyncpg://ake:ake@localhost/ake
+export LLM_API_KEY=your-api-key
+alembic upgrade head
+uv run python examples/knowledgebase/mcp_server.py
+```
+
+Then restart Claude Desktop. The `--no-compile` flag in the config means subsequent connections serve existing artifacts from the database without re-running LLM extraction. Remove it only if you want to re-ingest and recompile on every startup.
+
 ### Example MCP client usage
 
 ```python

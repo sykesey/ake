@@ -120,6 +120,48 @@ The server exposes:
 | `ake://citations/{artifact_id}` | All `TabularRef` citations for an artifact |
 | `ake://elements/{doc_id}/{element_id}` | Raw source row element |
 
+### Adding to Claude Desktop
+
+Open your Claude Desktop config file:
+
+| OS | Path |
+| --- | --- |
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+
+Add an entry under `mcpServers`. The server requires a running Postgres instance — pass `DATABASE_URL` via the `env` block:
+
+```json
+{
+  "mcpServers": {
+    "ake-outdoor-retail": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "examples/outdoor_retail/mcp_server.py",
+        "--stdio"
+      ],
+      "cwd": "/absolute/path/to/ake",
+      "env": {
+        "DATABASE_URL": "postgresql+asyncpg://ake:ake@localhost/ake"
+      }
+    }
+  }
+}
+```
+
+Run the ingestion and compilation once before connecting Claude:
+
+```bash
+cd /absolute/path/to/ake
+export DATABASE_URL=postgresql+asyncpg://ake:ake@localhost/ake
+alembic upgrade head
+uv run python examples/outdoor_retail/mcp_server.py --no-compile  # or omit to re-compile
+```
+
+Then restart Claude Desktop. On the next connection the server will detect existing artifacts and serve them immediately. Use `--no-compile` in the `args` list above if you want Claude to connect without re-running ingestion on every startup.
+
 ### Example MCP client usage
 
 ```python
