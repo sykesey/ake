@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AKE — Amorphous Ingest Viewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+<style>
+  :root {
+    --bg: #0f172a; --bg2: #1e293b; --bg3: #334155;
+    --border: #475569; --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+    --role-entity_id: #0ea5e9; --role-foreign_key: #f59e0b; --role-label: #8b5cf6;
+    --role-currency: #22c55e; --role-date: #ec4899; --role-categorical: #f97316;
+    --role-measure: #14b8a6; --role-boolean: #a855f7; --role-text: #94a3b8; --role-unknown: #475569;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Header */
+  #header { display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  #header h1 { font-size: 14px; font-weight: 600; color: var(--accent); letter-spacing: 0.05em; }
+  .pill { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-size: 11px; color: var(--muted); }
+  .pill span { color: var(--text); font-weight: 600; }
+
+  /* Main layout */
+  #main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  #sidebar { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+  .sidebar-section { padding: 10px 12px 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .sidebar-scroll { overflow-y: auto; flex: 1; }
+
+  .table-item { display: flex; align-items: center; gap: 8px; padding: 7px 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.1s; }
+  .table-item:hover { background: var(--bg3); }
+  .table-item.active { background: rgba(56,189,248,0.1); border-left: 2px solid var(--accent); }
+  .table-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .table-label { flex: 1; font-weight: 500; }
+  .table-count { color: var(--muted); font-size: 10px; }
+
+  /* Relationships in sidebar */
+  #rel-panel { border-top: 1px solid var(--border); flex-shrink: 0; max-height: 260px; overflow-y: auto; }
+  .rel-item { padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .rel-src { color: var(--muted); font-size: 10px; }
+  .rel-arrow { display: flex; align-items: center; gap: 4px; margin: 2px 0; font-size: 10px; }
+  .rel-col { font-weight: 600; }
+  .rel-target { color: var(--accent); }
+  .conf-bar-wrap { display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+  .conf-bar { height: 3px; border-radius: 2px; flex: 1; background: var(--bg3); }
+  .conf-fill { height: 100%; border-radius: 2px; background: #22c55e; transition: width 0.3s; }
+  .conf-label { font-size: 10px; color: var(--muted); width: 30px; text-align: right; }
+  .evidence-badge { font-size: 9px; padding: 1px 4px; border-radius: 3px; background: var(--bg3); color: var(--muted); }
+
+  /* Graph area */
+  #graph-area { flex: 1; position: relative; }
+  #cy { width: 100%; height: 100%; }
+  #graph-hint { position: absolute; bottom: 12px; right: 12px; font-size: 10px; color: var(--muted); background: rgba(15,23,42,0.8); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); pointer-events: none; }
+
+  /* Detail panel */
+  #detail { height: 320px; background: var(--bg2); border-top: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+  #detail.hidden { display: none; }
+  #detail-header { display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  #detail-title { font-size: 13px; font-weight: 700; }
+  #detail-class { font-size: 10px; color: var(--muted); font-style: italic; }
+  #detail-close { margin-left: auto; cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1; padding: 0 4px; }
+  #detail-close:hover { color: var(--text); }
+
+  .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .tab { padding: 6px 16px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; font-size: 11px; transition: all 0.1s; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  .tab-content { flex: 1; overflow: auto; padding: 12px 16px; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* Schema tab */
+  .col-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .col-name { width: 180px; font-weight: 500; flex-shrink: 0; }
+  .col-type { width: 100px; color: var(--muted); font-size: 10px; flex-shrink: 0; }
+  .role-badge { font-size: 9px; padding: 1px 6px; border-radius: 10px; font-weight: 600; letter-spacing: 0.03em; flex-shrink: 0; }
+  .col-nullable { font-size: 9px; color: var(--muted); margin-left: auto; }
+
+  /* Rows tab */
+  #rows-search { display: flex; gap: 8px; margin-bottom: 10px; }
+  #rows-search input { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; color: var(--text); font-family: inherit; font-size: 11px; flex: 1; }
+  #rows-search input:focus { outline: none; border-color: var(--accent); }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .data-table th { text-align: left; padding: 4px 8px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg2); white-space: nowrap; }
+  .data-table td { padding: 3px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .data-table tr:hover td { background: var(--bg3); }
+  .norm-val { color: #86efac; font-size: 10px; }
+  #rows-pagination { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 11px; color: var(--muted); }
+  #rows-pagination button { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 3px 10px; cursor: pointer; font-family: inherit; font-size: 11px; }
+  #rows-pagination button:disabled { opacity: 0.4; cursor: default; }
+
+  /* Ontology tab */
+  .owl-block { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; margin-bottom: 10px; font-size: 11px; }
+  .owl-ns { color: var(--muted); font-size: 10px; margin-bottom: 6px; }
+  .owl-class { color: #f59e0b; font-weight: 700; font-size: 13px; }
+  .owl-prop-list { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+  .owl-prop { display: flex; align-items: center; gap: 6px; }
+  .owl-prop-name { color: var(--accent); }
+  .owl-prop-type { color: var(--muted); font-size: 10px; }
+  .owl-prop-role { font-size: 9px; padding: 1px 5px; border-radius: 3px; }
+  .owl-objprop { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .owl-domain { color: #f59e0b; }
+  .owl-range { color: #22c55e; }
+
+  /* Stats tab */
+  .stats-col { margin-bottom: 12px; }
+  .stats-col-name { font-weight: 600; margin-bottom: 4px; }
+  .stats-num { display: flex; gap: 12px; color: var(--muted); font-size: 11px; }
+  .stats-num span { color: var(--text); }
+  .freq-bar-wrap { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+  .freq-label { width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .freq-bar { flex: 1; height: 8px; background: var(--bg3); border-radius: 2px; }
+  .freq-fill { height: 100%; border-radius: 2px; background: var(--accent); opacity: 0.7; }
+  .freq-count { width: 32px; text-align: right; color: var(--muted); font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>AKE — Amorphous Ingest Viewer</h1>
+  <div class="pill">tables <span id="hdr-tables">–</span></div>
+  <div class="pill">elements <span id="hdr-elements">–</span></div>
+  <div class="pill">relationships <span id="hdr-rels">–</span></div>
+  <div class="pill" id="hdr-dataset" style="color:var(--accent)">–</div>
+</div>
+
+<div id="main">
+  <div id="sidebar">
+    <div class="sidebar-section">Tables</div>
+    <div class="sidebar-scroll" id="table-list"></div>
+    <div id="rel-panel">
+      <div class="sidebar-section">Relationships</div>
+      <div id="rel-list"></div>
+    </div>
+  </div>
+
+  <div id="graph-area">
+    <div id="cy"></div>
+    <div id="graph-hint">Click a table node to inspect · Scroll to zoom · Drag to pan</div>
+  </div>
+</div>
+
+<div id="detail" class="hidden">
+  <div id="detail-header">
+    <div id="detail-dot" style="width:10px;height:10px;border-radius:50%;flex-shrink:0"></div>
+    <div id="detail-title">–</div>
+    <div id="detail-class">–</div>
+    <div id="detail-close" onclick="closeDetail()">✕</div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('schema')">Schema</div>
+    <div class="tab" onclick="switchTab('rows')">Rows</div>
+    <div class="tab" onclick="switchTab('stats')">Stats</div>
+    <div class="tab" onclick="switchTab('ontology')">Ontology</div>
+  </div>
+  <div class="tab-content">
+    <div class="tab-pane active" id="pane-schema"></div>
+    <div class="tab-pane" id="pane-rows">
+      <div id="rows-search">
+        <input id="row-filter-col" placeholder="column (optional)" style="max-width:140px">
+        <input id="row-filter-val" placeholder="filter value…">
+        <button onclick="applyRowFilter()" style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px">Search</button>
+      </div>
+      <div id="rows-table-wrap"></div>
+      <div id="rows-pagination">
+        <button id="btn-prev" onclick="changePage(-1)">← Prev</button>
+        <span id="page-info">–</span>
+        <button id="btn-next" onclick="changePage(1)">Next →</button>
+      </div>
+    </div>
+    <div class="tab-pane" id="pane-stats"></div>
+    <div class="tab-pane" id="pane-ontology"></div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+let cy, tables = [], relationships = [], selectedTable = null;
+let rowPage = 0, rowTotal = 0, rowLimit = 50;
+let ontologyData = null, statsData = null;
+
+const ROLE_COLOURS = {
+  entity_id:   '#0ea5e9', foreign_key: '#f59e0b', label:       '#8b5cf6',
+  currency:    '#22c55e', date:        '#ec4899', categorical: '#f97316',
+  measure:     '#14b8a6', boolean:     '#a855f7', text:        '#94a3b8',
+  unknown:     '#475569'
+};
+
+// ── Bootstrap ──────────────────────────────────────────────────────────
+async function init() {
+  const [graphData, tablesData, relsData] = await Promise.all([
+    fetch('/api/graph').then(r => r.json()),
+    fetch('/api/tables').then(r => r.json()),
+    fetch('/api/relationships').then(r => r.json()),
+  ]);
+
+  tables = tablesData.tables;
+  relationships = relsData.relationships;
+
+  document.getElementById('hdr-tables').textContent = tables.length;
+  document.getElementById('hdr-elements').textContent =
+    graphData.meta.total_elements.toLocaleString();
+  document.getElementById('hdr-rels').textContent = relationships.length;
+  document.getElementById('hdr-dataset').textContent = graphData.meta.dataset;
+
+  renderSidebar();
+  renderGraph(graphData);
+}
+
+// ── Sidebar ────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('table-list');
+  list.innerHTML = tables.map(t => `
+    <div class="table-item" id="tbl-item-${t.name}" onclick="selectTable('${t.name}')">
+      <div class="table-dot" style="background:${t.colour}"></div>
+      <div class="table-label">${t.label}</div>
+      <div class="table-count">${t.row_count}</div>
+    </div>`).join('');
+
+  const relList = document.getElementById('rel-list');
+  relList.innerHTML = relationships.map(r => {
+    const pct = Math.round(r.confidence * 100);
+    return `
+    <div class="rel-item">
+      <div class="rel-src" style="color:${r.source_colour}">${r.source_table}</div>
+      <div class="rel-arrow">
+        <span class="rel-col">${r.source_column}</span>
+        <span style="color:var(--muted)">→</span>
+        <span class="rel-target">${r.target_table}.${r.target_column}</span>
+        <span class="evidence-badge">${r.evidence}</span>
+      </div>
+      <div class="conf-bar-wrap">
+        <div class="conf-bar"><div class="conf-fill" style="width:${pct}%;background:${pct>=90?'#22c55e':pct>=70?'#f59e0b':'#ef4444'}"></div></div>
+        <div class="conf-label">${pct}%</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Graph ──────────────────────────────────────────────────────────────
+function renderGraph(data) {
+  cy = cytoscape({
+    container: document.getElementById('cy'),
+    elements: [...data.nodes.map(n => ({data: n.data})),
+               ...data.edges.map(e => ({data: e.data}))],
+    style: [
+      {
+        selector: 'node[type="dataset"]',
+        style: {
+          'background-color': '#334155', 'border-width': 2, 'border-color': '#94a3b8',
+          label: 'data(label)', 'font-family': 'SF Mono, Fira Code, monospace',
+          'font-size': 10, color: '#e2e8f0', 'text-valign': 'center',
+          'text-halign': 'center', 'width': 70, 'height': 70,
+          'text-wrap': 'wrap', 'text-max-width': 65,
+        }
+      },
+      {
+        selector: 'node[type="table"]',
+        style: {
+          'background-color': 'data(colour)', 'border-width': 0,
+          label: 'data(label)', 'font-family': 'SF Mono, Fira Code, monospace',
+          'font-size': 11, color: '#fff', 'text-valign': 'center',
+          'text-halign': 'center', 'width': 80, 'height': 40,
+          shape: 'roundrectangle',
+        }
+      },
+      {
+        selector: 'node:selected',
+        style: { 'border-width': 3, 'border-color': '#38bdf8' }
+      },
+      {
+        selector: 'edge[type="contains"]',
+        style: {
+          'line-color': 'data(colour)', opacity: 0.4, width: 1.5,
+          'target-arrow-color': 'data(colour)', 'target-arrow-shape': 'triangle',
+          'curve-style': 'bezier', 'arrow-scale': 0.7,
+        }
+      },
+      {
+        selector: 'edge[type="foreign_key"]',
+        style: {
+          'line-color': '#94a3b8', 'line-style': 'dashed', opacity: 0.8, width: 1.5,
+          'target-arrow-color': '#94a3b8', 'target-arrow-shape': 'triangle',
+          'curve-style': 'bezier', 'arrow-scale': 0.7,
+          label: 'data(label)', 'font-size': 9, color: '#94a3b8',
+          'font-family': 'SF Mono, Fira Code, monospace',
+          'text-background-color': '#0f172a', 'text-background-opacity': 1,
+          'text-background-padding': 2,
+        }
+      },
+    ],
+    layout: { name: 'dagre', rankDir: 'TB', nodeSep: 60, rankSep: 80, padding: 30 },
+    wheelSensitivity: 0.3,
+  });
+
+  cy.on('tap', 'node[type="table"]', evt => {
+    const d = evt.target.data();
+    selectTable(d.table);
+  });
+  cy.on('tap', 'node[type="dataset"]', () => closeDetail());
+  cy.on('tap', function(evt) { if (evt.target === cy) closeDetail(); });
+}
+
+// ── Table selection ────────────────────────────────────────────────────
+function selectTable(tableName) {
+  selectedTable = tables.find(t => t.name === tableName);
+  if (!selectedTable) return;
+
+  // Sidebar highlight
+  document.querySelectorAll('.table-item').forEach(el => el.classList.remove('active'));
+  const item = document.getElementById(`tbl-item-${tableName}`);
+  if (item) item.classList.add('active');
+
+  // Graph highlight
+  if (cy) {
+    cy.elements().removeClass('faded');
+    cy.nodes(`[table="${tableName}"]`).select();
+  }
+
+  // Detail panel
+  document.getElementById('detail').classList.remove('hidden');
+  document.getElementById('detail-dot').style.background = selectedTable.colour;
+  document.getElementById('detail-title').textContent = selectedTable.label;
+  document.getElementById('detail-class').textContent =
+    `owl:Class → ${selectedTable.class_name}`;
+
+  rowPage = 0;
+  rowTotal = 0;
+  document.getElementById('row-filter-col').value = '';
+  document.getElementById('row-filter-val').value = '';
+
+  const activeTab = document.querySelector('.tab.active');
+  const tabName = activeTab ? activeTab.textContent.toLowerCase() : 'schema';
+  switchTab(tabName);
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.add('hidden');
+  if (cy) { cy.elements().unselect(); cy.elements().removeClass('faded'); }
+  document.querySelectorAll('.table-item').forEach(el => el.classList.remove('active'));
+  selectedTable = null;
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t =>
+    t.classList.toggle('active', t.textContent.toLowerCase() === name));
+  document.querySelectorAll('.tab-pane').forEach(p =>
+    p.classList.toggle('active', p.id === `pane-${name}`));
+
+  if (!selectedTable) return;
+  if (name === 'schema') renderSchema();
+  else if (name === 'rows') loadRows(0);
+  else if (name === 'stats') loadStats();
+  else if (name === 'ontology') loadOntology();
+}
+
+// ── Schema tab ─────────────────────────────────────────────────────────
+function renderSchema() {
+  const cols = selectedTable.columns;
+  if (!cols.length) { document.getElementById('pane-schema').innerHTML = '<div style="color:var(--muted);padding:8px">No column schema available.</div>'; return; }
+
+  document.getElementById('pane-schema').innerHTML =
+    `<div style="display:flex;align-items:center;gap:8px;padding:0 0 8px;color:var(--muted);font-size:10px;border-bottom:1px solid var(--border);margin-bottom:4px">
+      <span style="width:180px">COLUMN</span>
+      <span style="width:100px">TYPE</span>
+      <span>SEMANTIC ROLE</span>
+    </div>` +
+    cols.map(c => {
+      const roleColor = ROLE_COLOURS[c.semantic_role] || '#475569';
+      return `
+      <div class="col-row">
+        <div class="col-name">${c.name}</div>
+        <div class="col-type">${c.type}</div>
+        <div class="role-badge" style="background:${roleColor}22;color:${roleColor};border:1px solid ${roleColor}44">
+          ${c.semantic_role}
+        </div>
+        ${c.semantic_role === 'foreign_key' ? `<div style="font-size:9px;color:var(--muted);margin-left:4px">${_fkTarget(c.name)}</div>` : ''}
+        <div class="col-nullable">${c.nullable ? 'nullable' : 'required'}</div>
+      </div>`;
+    }).join('') +
+    `<div style="margin-top:12px;padding:8px;background:var(--bg3);border-radius:4px;font-size:10px;color:var(--muted)">
+      ${_roleLegend()}
+    </div>`;
+}
+
+function _fkTarget(colName) {
+  const rel = relationships.find(r => r.source_table === selectedTable.name && r.source_column === colName);
+  return rel ? `→ ${rel.target_table}.${rel.target_column}` : '';
+}
+
+function _roleLegend() {
+  return Object.entries(ROLE_COLOURS).map(([role, color]) =>
+    `<span style="display:inline-flex;align-items:center;gap:3px;margin-right:8px">
+      <span style="width:6px;height:6px;border-radius:50%;background:${color};display:inline-block"></span>
+      <span style="color:${color}">${role}</span>
+    </span>`
+  ).join('');
+}
+
+// ── Rows tab ───────────────────────────────────────────────────────────
+async function loadRows(page) {
+  if (!selectedTable) return;
+  rowPage = page;
+  const col = document.getElementById('row-filter-col').value.trim();
+  const val = document.getElementById('row-filter-val').value.trim();
+  const url = `/api/rows?table=${selectedTable.name}&page=${page}&limit=${rowLimit}` +
+    (col ? `&column=${encodeURIComponent(col)}` : '') +
+    (val ? `&value=${encodeURIComponent(val)}` : '');
+
+  const data = await fetch(url).then(r => r.json());
+  rowTotal = data.total;
+
+  const cols = selectedTable.columns.map(c => c.name);
+  if (!cols.length && data.rows.length)
+    cols.push(...Object.keys(data.rows[0].fields));
+
+  const wrap = document.getElementById('rows-table-wrap');
+  if (!data.rows.length) {
+    wrap.innerHTML = '<div style="color:var(--muted);padding:8px">No rows found.</div>';
+  } else {
+    wrap.innerHTML = `<table class="data-table">
+      <thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${data.rows.map(row => `
+        <tr>${cols.map(c => {
+          const raw = row.fields[c] ?? '';
+          const norm = row.normalized_values[c];
+          const display = norm && norm !== raw
+            ? `${raw} <span class="norm-val">${norm}</span>` : raw;
+          return `<td title="${raw}">${display}</td>`;
+        }).join('')}</tr>`).join('')}
+      </tbody></table>`;
+  }
+
+  const start = page * rowLimit + 1;
+  const end = Math.min(start + data.count - 1, rowTotal);
+  document.getElementById('page-info').textContent =
+    rowTotal ? `${start}–${end} of ${rowTotal}` : '0 rows';
+  document.getElementById('btn-prev').disabled = page === 0;
+  document.getElementById('btn-next').disabled = end >= rowTotal;
+}
+
+function changePage(delta) { loadRows(rowPage + delta); }
+function applyRowFilter() { loadRows(0); }
+
+// ── Stats tab ──────────────────────────────────────────────────────────
+async function loadStats() {
+  if (!selectedTable) return;
+  if (!statsData) statsData = await fetch('/api/stats').then(r => r.json());
+  const tblStats = statsData[selectedTable.name];
+  if (!tblStats) { document.getElementById('pane-stats').innerHTML = '<div style="color:var(--muted)">No stats available.</div>'; return; }
+
+  const cols = selectedTable.columns.map(c => c.name);
+  document.getElementById('pane-stats').innerHTML = cols.map(col => {
+    const s = tblStats.columns[col];
+    if (!s) return '';
+    if (s.type === 'numeric') {
+      return `<div class="stats-col">
+        <div class="stats-col-name">${col}</div>
+        <div class="stats-num">
+          min <span>${s.min}</span> &nbsp; avg <span>${s.avg}</span> &nbsp; max <span>${s.max}</span> &nbsp; count <span>${s.count}</span>
+        </div></div>`;
+    }
+    const maxCount = s.top[0]?.count || 1;
+    return `<div class="stats-col">
+      <div class="stats-col-name">${col} <span style="color:var(--muted);font-size:10px">${s.distinct} distinct</span></div>
+      ${s.top.map(({value, count}) => `
+        <div class="freq-bar-wrap">
+          <div class="freq-label" title="${value}">${value}</div>
+          <div class="freq-bar"><div class="freq-fill" style="width:${Math.round(count/maxCount*100)}%"></div></div>
+          <div class="freq-count">${count}</div>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ── Ontology tab ───────────────────────────────────────────────────────
+async function loadOntology() {
+  if (!selectedTable) return;
+  if (!ontologyData) ontologyData = await fetch('/api/ontology').then(r => r.json());
+
+  const cls = ontologyData.classes.find(c => c.table === selectedTable.name);
+  if (!cls) { document.getElementById('pane-ontology').innerHTML = '<div style="color:var(--muted)">No ontology data.</div>'; return; }
+
+  const objProps = ontologyData.object_properties.filter(
+    p => p.domain === cls.name || p.range === cls.name);
+
+  document.getElementById('pane-ontology').innerHTML = `
+    <div class="owl-block">
+      <div class="owl-ns">${ontologyData.namespace}</div>
+      <div class="owl-class">${cls.name} <span style="color:var(--muted);font-size:10px;font-weight:400">a owl:Class</span></div>
+      <div style="color:var(--muted);font-size:10px;margin-top:4px">${cls.row_count} instances</div>
+      <div class="owl-prop-list">
+        ${cls.properties.map(p => {
+          const rc = ROLE_COLOURS[p.semantic_role] || '#475569';
+          return `<div class="owl-prop">
+            <span class="owl-prop-name">${p.name}</span>
+            <span style="color:var(--muted)">a owl:DatatypeProperty ;</span>
+            <span class="owl-prop-type">rdfs:range ${p.datatype}</span>
+            <span class="owl-prop-role" style="background:${rc}22;color:${rc};border:1px solid ${rc}44">${p.semantic_role}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    ${objProps.length ? `<div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Object Properties</div>
+    ${objProps.map(p => `
+      <div class="owl-objprop">
+        <span class="owl-domain">${p.domain}</span>
+        <span style="color:var(--muted)">—[</span>
+        <span style="color:var(--accent)">${p.name}</span>
+        <span style="color:var(--muted)">]→</span>
+        <span class="owl-range">${p.range}</span>
+        <span style="margin-left:auto;color:var(--muted);font-size:10px">${Math.round(p.confidence*100)}% · ${p.evidence}</span>
+      </div>`).join('')}` : ''}
+    <div style="margin-top:10px;padding:8px;background:var(--bg3);border-radius:4px;font-size:10px;color:var(--muted)">
+      Namespace: <span style="color:var(--text)">${ontologyData.namespace}</span><br>
+      Generated: <span style="color:var(--text)">${ontologyData.generated_at}</span>
+    </div>`;
+}
+
+// ── Bootstrap ──────────────────────────────────────────────────────────
+init().catch(console.error);
+</script>
+</body>
+</html>
