@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Data Science Team — Weekly Meeting Notes 2025-04-14</title></head>
+<body>
+<h1>Data Science Team — Weekly Sync</h1>
+<p>Date: 2025-04-14 | Team ID: T003 | Facilitator: Taylor Nguyen (E009) | Department: Engineering</p>
+
+<h2>Attendees</h2>
+<ul>
+  <li>Taylor Nguyen (E009) — Data Science Lead</li>
+  <li>Drew Rossi (E010) — Data Scientist</li>
+  <li>Jamie Ivanova (E011) — ML Engineer</li>
+</ul>
+
+<h2>PR003: Churn Prediction Model — Status Update</h2>
+<p>Taylor reported that the feature engineering pipeline is complete. We now have 87 features including
+12 derived behavioural signals from the event stream. Drew's hyperparameter sweep finished overnight:
+XGBoost with max_depth=6, learning_rate=0.05, n_estimators=400 is the current champion model with
+AUC 0.884 on the holdout set. This exceeds our target of 0.85.</p>
+<p><strong>Actions:</strong></p>
+<ul>
+  <li>Jamie to integrate the champion model into the serving infrastructure by 2025-04-21</li>
+  <li>Taylor to schedule a pilot readout with Customer Success (T004) for week of 2025-04-28</li>
+  <li>Drew to complete the model card and privacy review documentation by 2025-04-18</li>
+</ul>
+
+<h2>PR005: Real-time Analytics Pipeline — Architecture Decision</h2>
+<p>The team reviewed three stream processing options and made a final decision:</p>
+<ul>
+  <li><strong>Kafka Streams</strong>: rejected — JVM operational complexity, limited exactly-once guarantees</li>
+  <li><strong>Apache Flink (managed)</strong>: selected — exactly-once semantics, managed offering removes operational burden</li>
+  <li><strong>Custom asyncio consumer</strong>: rejected — insufficient throughput guarantees for billing events</li>
+</ul>
+<p>Jamie will own the Flink prototype. Target: end-to-end proof of concept by 2025-05-01. Taylor to
+document the ADR for this decision and circulate for comment by 2025-04-18.</p>
+
+<h2>Blockers</h2>
+<ul>
+  <li><strong>Data quality dashboard</strong>: blocked on Core Platform (T001) exposing the event-stream
+  endpoint via API v3. ETA from Jordan Kim: 2025-05-01. Impact: deferred to Q3 roadmap.</li>
+  <li><strong>GPU budget</strong>: Taylor submitted a $12,000 cloud GPU request for the Flink model
+  training runs. Finley Anderson (E015) to sign off by end of week.</li>
+</ul>
+
+<h2>Hiring</h2>
+<p>Taylor will begin interviewing for a second ML Engineer role in Q3. Job description to be finalised
+with HR by 2025-05-15. The role will focus on MLOps and model serving infrastructure.</p>
+
+<h2>Next Meeting</h2>
+<p>2025-04-21 at 10:00 — Demo of Churn model scoring endpoint + Flink prototype kickoff + model card review.</p>
+</body>
+</html>

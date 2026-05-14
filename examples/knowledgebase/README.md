@@ -4,6 +4,9 @@ This example demonstrates the complete AKE pipeline on realistic company
 documents — an engineering handbook, an HR handbook, and a security policy —
 from raw HTML to a queryable MCP server agents can consume.
 
+![Viewer](assets/image.png)
+
+
 ## What you'll see
 
 | Step | Script | Concept demonstrated |

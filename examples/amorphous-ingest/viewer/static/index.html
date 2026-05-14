@@ -40,7 +40,7 @@
   .table-count { color: var(--muted); font-size: 10px; }
 
   /* Relationships in sidebar */
-  #rel-panel { border-top: 1px solid var(--border); flex-shrink: 0; max-height: 260px; overflow-y: auto; }
+  #rel-panel { border-top: 1px solid var(--border); flex-shrink: 0; max-height: 200px; overflow-y: auto; }
   .rel-item { padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
   .rel-src { color: var(--muted); font-size: 10px; }
   .rel-arrow { display: flex; align-items: center; gap: 4px; margin: 2px 0; font-size: 10px; }
@@ -51,6 +51,15 @@
   .conf-fill { height: 100%; border-radius: 2px; background: #22c55e; transition: width 0.3s; }
   .conf-label { font-size: 10px; color: var(--muted); width: 30px; text-align: right; }
   .evidence-badge { font-size: 9px; padding: 1px 4px; border-radius: 3px; background: var(--bg3); color: var(--muted); }
+
+  /* Documents in sidebar */
+  #doc-panel { border-top: 1px solid var(--border); flex-shrink: 0; max-height: 200px; overflow-y: auto; }
+  .doc-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.1s; }
+  .doc-item:hover { background: var(--bg3); }
+  .doc-item.active { background: rgba(56,189,248,0.1); border-left: 2px solid var(--accent); }
+  .doc-square { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .doc-label { flex: 1; font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .doc-type-tag { font-size: 9px; padding: 1px 4px; border-radius: 3px; flex-shrink: 0; }
 
   /* Graph area */
   #graph-area { flex: 1; position: relative; }
@@ -118,6 +127,14 @@
   .freq-bar { flex: 1; height: 8px; background: var(--bg3); border-radius: 2px; }
   .freq-fill { height: 100%; border-radius: 2px; background: var(--accent); opacity: 0.7; }
   .freq-count { width: 32px; text-align: right; color: var(--muted); font-size: 10px; }
+
+  /* Elements tab (document view) */
+  .el-item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .el-type { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 3px; background: var(--bg3); color: var(--muted); margin-bottom: 4px; }
+  .el-text { color: var(--text); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  .doc-link-banner { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; font-size: 11px; display: flex; align-items: center; gap: 10px; }
+  .doc-link-entity { color: var(--accent); font-weight: 700; }
+  .doc-link-table { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -127,6 +144,7 @@
   <div class="pill">tables <span id="hdr-tables">–</span></div>
   <div class="pill">elements <span id="hdr-elements">–</span></div>
   <div class="pill">relationships <span id="hdr-rels">–</span></div>
+  <div class="pill">docs <span id="hdr-docs">–</span></div>
   <div class="pill" id="hdr-dataset" style="color:var(--accent)">–</div>
 </div>
 
@@ -138,29 +156,28 @@
       <div class="sidebar-section">Relationships</div>
       <div id="rel-list"></div>
     </div>
+    <div id="doc-panel">
+      <div class="sidebar-section">Documents</div>
+      <div id="doc-list"></div>
+    </div>
   </div>
 
   <div id="graph-area">
     <div id="cy"></div>
-    <div id="graph-hint">Click a table node to inspect · Scroll to zoom · Drag to pan</div>
+    <div id="graph-hint">Click a table or document node · Scroll to zoom · Drag to pan</div>
   </div>
 </div>
 
 <div id="detail" class="hidden">
   <div id="detail-header">
-    <div id="detail-dot" style="width:10px;height:10px;border-radius:50%;flex-shrink:0"></div>
+    <div id="detail-dot" style="width:10px;height:10px;border-radius:2px;flex-shrink:0"></div>
     <div id="detail-title">–</div>
     <div id="detail-class">–</div>
     <div id="detail-close" onclick="closeDetail()">✕</div>
   </div>
-  <div class="tab-bar">
-    <div class="tab active" onclick="switchTab('schema')">Schema</div>
-    <div class="tab" onclick="switchTab('rows')">Rows</div>
-    <div class="tab" onclick="switchTab('stats')">Stats</div>
-    <div class="tab" onclick="switchTab('ontology')">Ontology</div>
-  </div>
+  <div class="tab-bar" id="tab-bar"></div>
   <div class="tab-content">
-    <div class="tab-pane active" id="pane-schema"></div>
+    <div class="tab-pane" id="pane-schema"></div>
     <div class="tab-pane" id="pane-rows">
       <div id="rows-search">
         <input id="row-filter-col" placeholder="column (optional)" style="max-width:140px">
@@ -176,12 +193,14 @@
     </div>
     <div class="tab-pane" id="pane-stats"></div>
     <div class="tab-pane" id="pane-ontology"></div>
+    <div class="tab-pane" id="pane-elements"></div>
   </div>
 </div>
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────
-let cy, tables = [], relationships = [], selectedTable = null;
+let cy, tables = [], relationships = [], documents = [];
+let selectedTable = null, selectedDoc = null;
 let rowPage = 0, rowTotal = 0, rowLimit = 50;
 let ontologyData = null, statsData = null;
 
@@ -192,21 +211,36 @@ const ROLE_COLOURS = {
   unknown:     '#475569'
 };
 
+const DOC_TYPE_COLOURS = {
+  vision:        '#0ea5e9',
+  status:        '#22c55e',
+  workspec:      '#f59e0b',
+  meeting_notes: '#8b5cf6',
+  document:      '#64748b',
+};
+
+function _docColour(docType) {
+  return DOC_TYPE_COLOURS[docType] || DOC_TYPE_COLOURS.document;
+}
+
 // ── Bootstrap ──────────────────────────────────────────────────────────
 async function init() {
-  const [graphData, tablesData, relsData] = await Promise.all([
+  const [graphData, tablesData, relsData, docsData] = await Promise.all([
     fetch('/api/graph').then(r => r.json()),
     fetch('/api/tables').then(r => r.json()),
     fetch('/api/relationships').then(r => r.json()),
+    fetch('/api/documents').then(r => r.json()),
   ]);
 
   tables = tablesData.tables;
   relationships = relsData.relationships;
+  documents = docsData.documents;
 
   document.getElementById('hdr-tables').textContent = tables.length;
   document.getElementById('hdr-elements').textContent =
     graphData.meta.total_elements.toLocaleString();
   document.getElementById('hdr-rels').textContent = relationships.length;
+  document.getElementById('hdr-docs').textContent = documents.length;
   document.getElementById('hdr-dataset').textContent = graphData.meta.dataset;
 
   renderSidebar();
@@ -241,6 +275,20 @@ function renderSidebar() {
       </div>
     </div>`;
   }).join('');
+
+  const docList = document.getElementById('doc-list');
+  docList.innerHTML = documents.map(d => {
+    const lk = d.link;
+    const colour = _docColour(lk?.doc_type);
+    const label = d.name.replace(/_/g, ' ');
+    const tag = lk ? `${lk.doc_type} · ${lk.entity_id}` : 'unlinked';
+    return `
+    <div class="doc-item" id="doc-item-${d.name}" onclick="selectDocument('${d.name}')">
+      <div class="doc-square" style="background:${colour}"></div>
+      <div class="doc-label" title="${label}">${label}</div>
+      <div class="doc-type-tag" style="background:${colour}22;color:${colour};border:1px solid ${colour}44">${tag}</div>
+    </div>`;
+  }).join('');
 }
 
 // ── Graph ──────────────────────────────────────────────────────────────
@@ -271,6 +319,16 @@ function renderGraph(data) {
         }
       },
       {
+        selector: 'node[type="document"]',
+        style: {
+          'background-color': '#1e293b', 'border-width': 1.5, 'border-color': '#64748b',
+          label: 'data(label)', 'font-family': 'SF Mono, Fira Code, monospace',
+          'font-size': 8, color: '#94a3b8', 'text-valign': 'center',
+          'text-halign': 'center', 'width': 52, 'height': 36,
+          shape: 'diamond', 'text-wrap': 'wrap', 'text-max-width': 48,
+        }
+      },
+      {
         selector: 'node:selected',
         style: { 'border-width': 3, 'border-color': '#38bdf8' }
       },
@@ -294,14 +352,28 @@ function renderGraph(data) {
           'text-background-padding': 2,
         }
       },
+      {
+        selector: 'edge[type="document_link"]',
+        style: {
+          'line-color': '#475569', 'line-style': 'dotted', opacity: 0.6, width: 1,
+          'target-arrow-color': '#475569', 'target-arrow-shape': 'triangle',
+          'curve-style': 'bezier', 'arrow-scale': 0.5,
+          label: 'data(label)', 'font-size': 8, color: '#64748b',
+          'font-family': 'SF Mono, Fira Code, monospace',
+          'text-background-color': '#0f172a', 'text-background-opacity': 1,
+          'text-background-padding': 2,
+        }
+      },
     ],
-    layout: { name: 'dagre', rankDir: 'TB', nodeSep: 60, rankSep: 80, padding: 30 },
+    layout: { name: 'dagre', rankDir: 'TB', nodeSep: 50, rankSep: 70, padding: 30 },
     wheelSensitivity: 0.3,
   });
 
   cy.on('tap', 'node[type="table"]', evt => {
-    const d = evt.target.data();
-    selectTable(d.table);
+    selectTable(evt.target.data().table);
+  });
+  cy.on('tap', 'node[type="document"]', evt => {
+    selectDocument(evt.target.data().doc_name);
   });
   cy.on('tap', 'node[type="dataset"]', () => closeDetail());
   cy.on('tap', function(evt) { if (evt.target === cy) closeDetail(); });
@@ -310,41 +382,75 @@ function renderGraph(data) {
 // ── Table selection ────────────────────────────────────────────────────
 function selectTable(tableName) {
   selectedTable = tables.find(t => t.name === tableName);
+  selectedDoc = null;
   if (!selectedTable) return;
 
-  // Sidebar highlight
-  document.querySelectorAll('.table-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.table-item, .doc-item').forEach(el => el.classList.remove('active'));
   const item = document.getElementById(`tbl-item-${tableName}`);
   if (item) item.classList.add('active');
 
-  // Graph highlight
-  if (cy) {
-    cy.elements().removeClass('faded');
-    cy.nodes(`[table="${tableName}"]`).select();
-  }
+  if (cy) { cy.elements().unselect(); cy.nodes(`[table="${tableName}"]`).select(); }
 
-  // Detail panel
   document.getElementById('detail').classList.remove('hidden');
+  document.getElementById('detail-dot').style.borderRadius = '50%';
   document.getElementById('detail-dot').style.background = selectedTable.colour;
   document.getElementById('detail-title').textContent = selectedTable.label;
-  document.getElementById('detail-class').textContent =
-    `owl:Class → ${selectedTable.class_name}`;
+  document.getElementById('detail-class').textContent = `owl:Class → ${selectedTable.class_name}`;
 
-  rowPage = 0;
-  rowTotal = 0;
+  rowPage = 0; rowTotal = 0;
   document.getElementById('row-filter-col').value = '';
   document.getElementById('row-filter-val').value = '';
 
-  const activeTab = document.querySelector('.tab.active');
-  const tabName = activeTab ? activeTab.textContent.toLowerCase() : 'schema';
-  switchTab(tabName);
+  renderTabBar('table');
+}
+
+// ── Document selection ─────────────────────────────────────────────────
+function selectDocument(docName) {
+  selectedDoc = documents.find(d => d.name === docName);
+  selectedTable = null;
+  if (!selectedDoc) return;
+
+  document.querySelectorAll('.table-item, .doc-item').forEach(el => el.classList.remove('active'));
+  const item = document.getElementById(`doc-item-${docName}`);
+  if (item) item.classList.add('active');
+
+  if (cy) { cy.elements().unselect(); cy.nodes(`[doc_name="${docName}"]`).select(); }
+
+  const lk = selectedDoc.link;
+  const colour = _docColour(lk?.doc_type);
+  document.getElementById('detail').classList.remove('hidden');
+  document.getElementById('detail-dot').style.borderRadius = '2px';
+  document.getElementById('detail-dot').style.background = colour;
+  document.getElementById('detail-title').textContent = docName.replace(/_/g, ' ');
+  document.getElementById('detail-class').textContent = lk
+    ? `${lk.doc_type} → ${lk.table_name} : ${lk.entity_id}`
+    : 'unlinked document';
+
+  renderTabBar('document');
 }
 
 function closeDetail() {
   document.getElementById('detail').classList.add('hidden');
-  if (cy) { cy.elements().unselect(); cy.elements().removeClass('faded'); }
-  document.querySelectorAll('.table-item').forEach(el => el.classList.remove('active'));
+  if (cy) { cy.elements().unselect(); }
+  document.querySelectorAll('.table-item, .doc-item').forEach(el => el.classList.remove('active'));
   selectedTable = null;
+  selectedDoc = null;
+}
+
+// ── Tab bar ────────────────────────────────────────────────────────────
+function renderTabBar(mode) {
+  const bar = document.getElementById('tab-bar');
+  if (mode === 'table') {
+    bar.innerHTML = `
+      <div class="tab" onclick="switchTab('schema')">Schema</div>
+      <div class="tab" onclick="switchTab('rows')">Rows</div>
+      <div class="tab" onclick="switchTab('stats')">Stats</div>
+      <div class="tab" onclick="switchTab('ontology')">Ontology</div>`;
+    switchTab('schema');
+  } else {
+    bar.innerHTML = `<div class="tab" onclick="switchTab('elements')">Elements</div>`;
+    switchTab('elements');
+  }
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────
@@ -354,11 +460,11 @@ function switchTab(name) {
   document.querySelectorAll('.tab-pane').forEach(p =>
     p.classList.toggle('active', p.id === `pane-${name}`));
 
-  if (!selectedTable) return;
   if (name === 'schema') renderSchema();
   else if (name === 'rows') loadRows(0);
   else if (name === 'stats') loadStats();
   else if (name === 'ontology') loadOntology();
+  else if (name === 'elements') loadDocElements();
 }
 
 // ── Schema tab ─────────────────────────────────────────────────────────
@@ -522,6 +628,40 @@ async function loadOntology() {
       Namespace: <span style="color:var(--text)">${ontologyData.namespace}</span><br>
       Generated: <span style="color:var(--text)">${ontologyData.generated_at}</span>
     </div>`;
+}
+
+// ── Elements tab (document view) ───────────────────────────────────────
+async function loadDocElements() {
+  if (!selectedDoc) return;
+  const pane = document.getElementById('pane-elements');
+  pane.innerHTML = '<div style="color:var(--muted);padding:8px">Loading…</div>';
+
+  const data = await fetch(`/api/document-elements?doc=${encodeURIComponent(selectedDoc.name)}`).then(r => r.json());
+
+  const lk = data.link;
+  const colour = _docColour(lk?.doc_type);
+  const banner = lk ? `
+    <div class="doc-link-banner">
+      <div class="doc-square" style="background:${colour};width:10px;height:10px;border-radius:2px;flex-shrink:0"></div>
+      <span class="doc-link-entity">${lk.entity_id}</span>
+      <span style="color:var(--muted)">in</span>
+      <span class="doc-link-table">${lk.table_name}.${lk.column_name}</span>
+      <span class="doc-type-tag" style="margin-left:auto;background:${colour}22;color:${colour};border:1px solid ${colour}44">${lk.doc_type}</span>
+    </div>` : '';
+
+  const elements = data.elements.map(el => `
+    <div class="el-item">
+      <span class="el-type">${el.type}</span>
+      <div class="el-text">${escapeHtml(el.text)}</div>
+    </div>`).join('');
+
+  pane.innerHTML = banner +
+    `<div style="color:var(--muted);font-size:10px;margin-bottom:8px">${data.element_count} elements</div>` +
+    (elements || '<div style="color:var(--muted)">No elements found.</div>');
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ── Bootstrap ──────────────────────────────────────────────────────────

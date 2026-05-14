@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Work Specification — Assignment A001</title></head>
+<body>
+<h1>Work Specification: Assignment A001</h1>
+<p>Assignment ID: A001 | Employee: Jordan Kim (E001) | Project: API v3 Migration (PR001)</p>
+<p>Role: Lead | Allocated Hours: 160 | Start Date: 2025-01-15</p>
+
+<h2>Overview</h2>
+<p>Jordan Kim serves as Engineering Lead on the API v3 Migration. As lead, Jordan is accountable for the
+technical direction of the migration, the health of the delivery process, and the coordination of
+all contributing engineers. This work specification defines the scope, deliverables, and quality
+standards for the 160 allocated hours.</p>
+
+<h2>Responsibilities</h2>
+<ul>
+  <li>Technical ownership of the migration architecture and API design decisions for v3</li>
+  <li>Code review of all endpoint implementations authored by Alex Patel (E002), Sam Chen (E003), and Riley Okafor (E004)</li>
+  <li>Design and maintenance of the automated consumer migration tooling</li>
+  <li>Stakeholder communication: weekly written status updates to engineering director</li>
+  <li>Escalation ownership: all blockers resolved or escalated within 48 hours</li>
+  <li>Cross-team coordination with the 6 downstream consumer teams</li>
+</ul>
+
+<h2>Key Deliverables</h2>
+<ol>
+  <li><strong>Auth and rate-limiting middleware</strong> — Complete by 2025-02-28. The v3 authentication
+  layer handling OAuth 2.0, API key auth, and per-consumer rate limits. Delivered and in production.</li>
+  <li><strong>Migration tooling</strong> — Automated scripts to assist each of the 6 consuming teams in
+  upgrading their integrations. Covers auth header changes, endpoint path normalization, and response
+  schema mapping.</li>
+  <li><strong>Migration guide documentation</strong> — Complete technical reference for consuming teams.
+  Covers breaking changes, equivalent v3 endpoints, migration timeline, and rollback procedures.</li>
+  <li><strong>Deprecation runbook and sunset communications</strong> — Complete by 2025-06-15. Internal
+  runbook and external communication plan for the legacy API sunset on 2025-06-30.</li>
+</ol>
+
+<h2>Time Allocation</h2>
+<table border="1" cellpadding="4">
+  <tr><th>Activity</th><th>Estimated Hours</th><th>Percentage</th></tr>
+  <tr><td>Implementation (auth middleware, tooling)</td><td>64</td><td>40%</td></tr>
+  <tr><td>Code review and mentoring</td><td>48</td><td>30%</td></tr>
+  <tr><td>Stakeholder communication and coordination</td><td>32</td><td>20%</td></tr>
+  <tr><td>Documentation</td><td>16</td><td>10%</td></tr>
+  <tr><td>Total</td><td>160</td><td>100%</td></tr>
+</table>
+
+<h2>Definition of Done</h2>
+<ul>
+  <li>All 47 legacy endpoints migrated and covered by the v3 integration test suite</li>
+  <li>Zero P1 incidents in the 2-week soak period before legacy sunset</li>
+  <li>Consumer migration rate ≥ 95% before sunset date (2025-06-30)</li>
+  <li>API v3 documentation published, peer-reviewed, and signed off by product</li>
+  <li>Deprecation sunset executed without customer-facing incidents</li>
+</ul>
+
+<h2>Quality Standards</h2>
+<p>All v3 endpoints must meet: test coverage ≥ 90%, P99 latency ≤ 50 ms under normal load, error rate
+≤ 0.01% in production. Security review required for any endpoint handling authentication tokens or
+payment data before merge.</p>
+</body>
+</html>

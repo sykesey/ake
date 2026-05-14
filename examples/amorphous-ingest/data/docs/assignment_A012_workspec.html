@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Work Specification — Assignment A012</title></head>
+<body>
+<h1>Work Specification: Assignment A012</h1>
+<p>Assignment ID: A012 | Employee: Taylor Nguyen (E009) | Project: Churn Prediction Model (PR003)</p>
+<p>Role: Lead | Allocated Hours: 200 | Start Date: 2025-01-01</p>
+
+<h2>Overview</h2>
+<p>Taylor Nguyen leads the Churn Prediction Model project. As lead, Taylor is responsible for the
+end-to-end ML development lifecycle: problem framing, data governance, model selection, stakeholder
+communication, and production deployment. This specification covers all 200 allocated hours across
+the January–July 2025 project window.</p>
+
+<h2>Responsibilities</h2>
+<ul>
+  <li>ML strategy: problem framing, success metrics, go/no-go criteria for production deployment</li>
+  <li>Dataset governance: ensure all training data complies with GDPR and CCPA data privacy requirements</li>
+  <li>Feature engineering oversight: review all 87 features for data leakage, staleness, and distributional assumptions</li>
+  <li>Stakeholder management: translate model outputs into actionable recommendations for Customer Success (T004)</li>
+  <li>Pilot programme design and coordination with Skyler Brown (E012, CS Lead)</li>
+  <li>Model monitoring: define drift alerting thresholds and performance SLOs for post-launch operations</li>
+</ul>
+
+<h2>Key Deliverables</h2>
+<ol>
+  <li><strong>Feature engineering specification</strong> — Complete by 2025-02-15. Defines all 87
+  features: source, computation logic, expected distribution, and leakage assessment. Delivered.</li>
+  <li><strong>Champion model selection report</strong> — Complete by 2025-04-14. Documents evaluation
+  methodology, candidate models, and the selection rationale for XGBoost. Delivered: AUC 0.884.</li>
+  <li><strong>Model card</strong> — Complete by 2025-04-18. Intended use, limitations, fairness analysis
+  across customer segments, and privacy assessment. In progress (Drew Rossi, E010, primary author).</li>
+  <li><strong>Pilot programme design</strong> — Complete by 2025-04-28. 200 highest-risk accounts,
+  four-week programme, success criteria, and measurement plan co-owned with Customer Success (T004).</li>
+  <li><strong>Production deployment checklist and rollback plan</strong> — Complete by 2025-05-24.
+  Step-by-step checklist for launch, rollback triggers, and incident response contacts.</li>
+</ol>
+
+<h2>Time Allocation</h2>
+<table border="1" cellpadding="4">
+  <tr><th>Activity</th><th>Estimated Hours</th><th>Percentage</th></tr>
+  <tr><td>ML development oversight and review</td><td>50</td><td>25%</td></tr>
+  <tr><td>Stakeholder communication and pilot design</td><td>50</td><td>25%</td></tr>
+  <tr><td>Specification and design documents</td><td>50</td><td>25%</td></tr>
+  <tr><td>Governance, privacy review, model card</td><td>50</td><td>25%</td></tr>
+  <tr><td>Total</td><td>200</td><td>100%</td></tr>
+</table>
+
+<h2>Definition of Done</h2>
+<ul>
+  <li>Model AUC ≥ 0.85 on holdout set — achieved (0.884)</li>
+  <li>Model card reviewed and signed off by legal and data privacy teams</li>
+  <li>Pilot programme delivered to Customer Success team with documented methodology</li>
+  <li>Monitoring dashboard live with SLO alerting configured before production launch</li>
+  <li>Production deployment executed with zero data integrity incidents</li>
+</ul>
+
+<h2>Data Privacy and Compliance</h2>
+<p>Training data is drawn from pseudonymised customer activity logs. No PII (name, email, address) is
+used as a model feature. The model outputs a risk score per account_id; mapping to customer name
+occurs only at the point of Customer Success review and is subject to existing data access controls.
+Legal sign-off required before pilot launch.</p>
+</body>
+</html>

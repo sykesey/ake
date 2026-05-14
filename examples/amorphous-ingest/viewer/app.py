@@ -169,6 +169,50 @@ def create_app(result: AmorphousIngestionResult, ontology: Ontology) -> Starlett
             ],
         })
 
+    async def api_documents(_: Request) -> JSONResponse:
+        doc_links = {lk.document_name: lk for lk in result.document_links}
+        docs = []
+        for doc in result.documents:
+            lk = doc_links.get(doc.name)
+            docs.append({
+                "name": doc.name,
+                "element_count": doc.element_count,
+                "link": {
+                    "entity_id": lk.entity_id,
+                    "table_name": lk.table_name,
+                    "column_name": lk.column_name,
+                    "doc_type": lk.doc_type,
+                } if lk else None,
+            })
+        return JSONResponse({"documents": docs})
+
+    async def api_document_elements(request: Request) -> JSONResponse:
+        doc_name = request.query_params.get("doc", "")
+        doc = next((d for d in result.documents if d.name == doc_name), None)
+        if not doc:
+            return JSONResponse({"error": "not found", "elements": []})
+        lk = next((lk for lk in result.document_links if lk.document_name == doc_name), None)
+        elements = [
+            {
+                "element_id": el.element_id,
+                "type": el.type,
+                "section_path": el.section_path,
+                "text": el.text,
+            }
+            for el in doc.result.elements
+        ]
+        return JSONResponse({
+            "doc": doc_name,
+            "element_count": doc.element_count,
+            "link": {
+                "entity_id": lk.entity_id,
+                "table_name": lk.table_name,
+                "column_name": lk.column_name,
+                "doc_type": lk.doc_type,
+            } if lk else None,
+            "elements": elements,
+        })
+
     async def api_stats(_: Request) -> JSONResponse:
         stats: dict[str, Any] = {}
         for tbl in result.tables:
@@ -223,5 +267,7 @@ def create_app(result: AmorphousIngestionResult, ontology: Ontology) -> Starlett
         Route("/api/relationships", api_relationships),
         Route("/api/rows", api_rows),
         Route("/api/ontology", api_ontology),
+        Route("/api/documents", api_documents),
+        Route("/api/document-elements", api_document_elements),
         Route("/api/stats", api_stats),
     ])

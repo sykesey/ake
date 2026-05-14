@@ -6,6 +6,9 @@ simulated outdoor-retail business with five structured CSV datasets. Unlike the
 example uses **direct column→field mapping (ADR-009)** — every artifact field
 is read directly from a CSV column, with no LLM calls at compilation time.
 
+
+![Viewer](assets/image.png)
+
 ## Dataset
 
 Summit & Trail Outdoor Co. operates five retail stores across the Pacific

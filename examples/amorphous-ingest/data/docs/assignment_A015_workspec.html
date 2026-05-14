@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Work Specification — Assignment A015</title></head>
+<body>
+<h1>Work Specification: Assignment A015</h1>
+<p>Assignment ID: A015 | Employee: Taylor Nguyen (E009) | Project: Real-time Analytics Pipeline (PR005)</p>
+<p>Role: Lead | Allocated Hours: 200 | Start Date: 2025-03-01</p>
+
+<h2>Overview</h2>
+<p>Taylor Nguyen leads the Real-time Analytics Pipeline project in parallel with the Churn Prediction
+Model (A012/PR003). This parallel assignment is sustainable because PR005 is in its architecture and
+design phase during Q1–Q2, while the implementation is owned by Jamie Ivanova (E011) and Drew Rossi
+(E010). Taylor's 200 hours focus on technical strategy, requirements, and integration planning.</p>
+
+<h2>Responsibilities</h2>
+<ul>
+  <li>Architecture decision ownership: stream processing technology selection and rationale documentation</li>
+  <li>Requirements gathering: work with product and finance to define the billing event schema (6 event types)</li>
+  <li>SLO definition: latency, throughput, and exactly-once delivery guarantees for billing events</li>
+  <li>Infrastructure cost modelling: projected spend under 3× growth scenario over 18 months</li>
+  <li>Integration planning: ensure the pipeline delivers features cleanly to the PR003 churn model feature store</li>
+  <li>Operations handoff: runbook and SRE onboarding for production ownership</li>
+</ul>
+
+<h2>Architecture Decision: Stream Processing Selection</h2>
+<p>Completed 2025-04-14. Three candidates evaluated:</p>
+<table border="1" cellpadding="4">
+  <tr><th>Option</th><th>Decision</th><th>Key Reason</th></tr>
+  <tr><td>Kafka Streams</td><td>Rejected</td><td>JVM operational complexity; limited exactly-once guarantees for billing events</td></tr>
+  <tr><td>Apache Flink (managed)</td><td>Selected</td><td>Exactly-once semantics; managed offering removes operational burden; stateful windowing for churn features</td></tr>
+  <tr><td>Custom asyncio consumer</td><td>Rejected</td><td>Insufficient throughput guarantees at 10k events/second; no exactly-once support</td></tr>
+</table>
+<p>Taylor to document the full ADR and circulate for review by 2025-04-18.</p>
+
+<h2>Key Deliverables</h2>
+<ol>
+  <li><strong>Stream processing ADR</strong> — Complete by 2025-04-18. Apache Flink selection rationale,
+  trade-offs, and alternative assessment. To be added to the engineering ADR repository.</li>
+  <li><strong>Billing event schema specification</strong> — Complete by 2025-04-30. Defines 6 event types
+  (account_created, subscription_changed, invoice_paid, invoice_failed, account_suspended, account_closed)
+  with field-level schema, validation rules, and versioning strategy.</li>
+  <li><strong>Pipeline architecture diagram and SLO targets</strong> — Complete by 2025-05-15. End-to-end
+  diagram covering ingestion, processing, and output sinks. SLOs: p99 latency ≤ 500 ms, throughput ≥
+  10,000 events/second, zero data loss on billing events.</li>
+  <li><strong>Integration specification with churn feature store</strong> — Complete by 2025-05-30.
+  Defines which real-time features PR003 requires from the pipeline, delivery format, and SLAs.</li>
+  <li><strong>Go-live checklist and operations runbook</strong> — Complete by 2025-08-15. Step-by-step
+  launch checklist, scaling playbook, incident response procedures, and SRE onboarding guide.</li>
+</ol>
+
+<h2>Time Allocation</h2>
+<table border="1" cellpadding="4">
+  <tr><th>Activity</th><th>Estimated Hours</th><th>Percentage</th></tr>
+  <tr><td>Architecture decisions and technical design</td><td>60</td><td>30%</td></tr>
+  <tr><td>Stakeholder coordination and governance</td><td>40</td><td>20%</td></tr>
+  <tr><td>Implementation oversight and review</td><td>60</td><td>30%</td></tr>
+  <tr><td>Integration planning and operations handoff</td><td>40</td><td>20%</td></tr>
+  <tr><td>Total</td><td>200</td><td>100%</td></tr>
+</table>
+
+<h2>Definition of Done</h2>
+<ul>
+  <li>End-to-end Flink proof of concept processing live billing events by 2025-05-01</li>
+  <li>P99 event latency ≤ 500 ms verified under 10,000 events/second load test</li>
+  <li>Exactly-once delivery confirmed for billing event types via chaos test</li>
+  <li>Integration with PR003 feature store validated by Drew Rossi (E010)</li>
+  <li>Operations runbook reviewed and signed off by SRE lead</li>
+</ul>
+</body>
+</html>

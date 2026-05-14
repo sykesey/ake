@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Project Status Report — Churn Prediction Model (PR003)</title></head>
+<body>
+<h1>Project Status Report: Churn Prediction Model</h1>
+<p>Project ID: PR003 | Team: Data Science (T003) | Status: Active | As of: 2025-04-14</p>
+<p>Timeline: 2025-01-01 to 2025-07-31 | Budget: $68,000</p>
+
+<h2>Executive Summary</h2>
+<p>The Churn Prediction Model project is ahead of plan on ML development and entering the serving
+infrastructure phase. Champion model selected (AUC 0.884 on holdout, exceeding the 0.85 target).
+The team is on track for a May production deployment, two weeks ahead of the original schedule.</p>
+
+<h2>Model Performance Summary</h2>
+<ul>
+  <li>Algorithm: XGBoost (max_depth=6, learning_rate=0.05, n_estimators=400)</li>
+  <li>Holdout AUC: 0.884 (target: ≥0.85)</li>
+  <li>Precision at top-10% risk decile: 71%</li>
+  <li>Recall at top-10% risk decile: 68%</li>
+  <li>Training dataset: 18 months of customer activity, 147,000 labelled examples</li>
+  <li>Feature count: 87 features including 12 derived real-time behavioural signals</li>
+  <li>Training time: 4.2 hours on 8-core GPU instance</li>
+</ul>
+
+<h2>Milestone Status</h2>
+<table border="1" cellpadding="4">
+  <tr><th>Milestone</th><th>Target Date</th><th>Status</th><th>Owner</th></tr>
+  <tr><td>Data pipeline and labelling</td><td>2025-02-28</td><td>Complete</td><td>Drew Rossi (E010)</td></tr>
+  <tr><td>Feature engineering (87 features)</td><td>2025-03-31</td><td>Complete</td><td>Drew Rossi (E010)</td></tr>
+  <tr><td>Champion model selection</td><td>2025-04-14</td><td>Complete</td><td>Taylor Nguyen (E009)</td></tr>
+  <tr><td>Model card and privacy review</td><td>2025-04-18</td><td>In progress</td><td>Drew Rossi (E010)</td></tr>
+  <tr><td>Serving infrastructure</td><td>2025-04-21</td><td>In progress</td><td>Jamie Ivanova (E011)</td></tr>
+  <tr><td>Customer Success pilot (200 accounts)</td><td>2025-05-05</td><td>Not started</td><td>Taylor Nguyen (E009)</td></tr>
+  <tr><td>Production launch</td><td>2025-05-31</td><td>Not started</td><td>Taylor Nguyen (E009)</td></tr>
+</table>
+
+<h2>Team</h2>
+<ul>
+  <li>Taylor Nguyen (E009) — Lead. ML strategy, stakeholder communication, pilot design.</li>
+  <li>Drew Rossi (E010) — Contributor. Feature engineering, model evaluation, model card.</li>
+  <li>Jamie Ivanova (E011) — Contributor. Serving infrastructure, MLOps, monitoring.</li>
+</ul>
+
+<h2>Pilot Programme Design</h2>
+<p>The pilot will target the 200 accounts with the highest predicted churn probability. Customer Success
+Lead Skyler Brown (E012) will co-own the pilot with Taylor Nguyen. The pilot will run for four weeks
+(2025-05-05 to 2025-06-02) with weekly check-ins. Success criteria: Customer Success team reports that
+model scores are actionable and directionally correct for ≥80% of flagged accounts.</p>
+
+<h2>Budget</h2>
+<p>Budget: $68,000 | Spent to date: $38,900 (57%) | Projected final: $65,200 | Status: Within budget</p>
+<p>GPU compute costs came in $2,800 under forecast due to efficient hyperparameter search scheduling.</p>
+</body>
+</html>

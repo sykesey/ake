@@ -27,6 +27,7 @@ _TABLE_COLOURS = [
 
 _DATASET_COLOUR = "#334155"
 _FK_COLOUR = "#94a3b8"
+_DOC_COLOUR = "#64748b"
 
 
 def _parse_row_text(text: str) -> dict[str, str]:
@@ -107,6 +108,36 @@ def build_graph(ontology: Ontology, result: AmorphousIngestionResult) -> dict[st
             }
         })
 
+    doc_links_by_name = {lk.document_name: lk for lk in result.document_links}
+    for doc in result.documents:
+        lk = doc_links_by_name.get(doc.name)
+        label = f"{lk.entity_id}\n{lk.doc_type}" if lk else doc.name.replace("_", " ")
+        nodes.append({
+            "data": {
+                "id": f"doc:{doc.name}",
+                "label": label,
+                "type": "document",
+                "colour": _DOC_COLOUR,
+                "doc_name": doc.name,
+                "element_count": doc.element_count,
+                "doc_type": lk.doc_type if lk else "document",
+                "linked_table": lk.table_name if lk else None,
+                "entity_id": lk.entity_id if lk else None,
+            }
+        })
+        if lk:
+            edges.append({
+                "data": {
+                    "id": f"doclink:{doc.name}",
+                    "source": f"doc:{doc.name}",
+                    "target": f"table:{lk.table_name}",
+                    "type": "document_link",
+                    "colour": _DOC_COLOUR,
+                    "label": lk.entity_id,
+                    "doc_type": lk.doc_type,
+                }
+            })
+
     return {
         "nodes": nodes,
         "edges": edges,
@@ -115,6 +146,7 @@ def build_graph(ontology: Ontology, result: AmorphousIngestionResult) -> dict[st
             "namespace": ontology.namespace,
             "generated_at": ontology.generated_at,
             "tables": len(ontology.classes),
+            "documents": len(result.documents),
             "total_elements": total_elements,
             "fk_relationships": len(ontology.relationships),
         },

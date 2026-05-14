@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Core Platform Team Vision — 2025</title></head>
+<body>
+<h1>Core Platform Team Vision 2025</h1>
+<p>Team ID: T001 | Department: Engineering | Lead: Jordan Kim (E001) | Headcount: 5</p>
+
+<h2>Mission</h2>
+<p>The Core Platform team builds the foundational infrastructure that enables every product team to ship
+faster, safer, and with greater confidence. Our systems underpin authentication, data access, and the
+developer experience across all of engineering.</p>
+
+<h2>Strategic Goals for 2025</h2>
+<ul>
+  <li>Complete the API v3 Migration (PR001) by end of Q2, retiring 47 legacy endpoints</li>
+  <li>Launch the Enterprise Portal (PR006) to serve the B2B customer segment by Q3</li>
+  <li>Reduce internal API latency p99 from 480 ms to under 120 ms</li>
+  <li>Achieve 99.95% uptime across all core services</li>
+  <li>Ship an internal developer portal with self-service credential management</li>
+</ul>
+
+<h2>Team Principles</h2>
+<p>We build platforms, not products. Every decision we make should multiply the output of the teams that
+depend on us. We invest in observability, documentation, and developer ergonomics as first-class concerns,
+not afterthoughts.</p>
+<p>Reliability is a feature. When platform engineers write code, thousands of engineers are affected by
+their choices. We hold ourselves to a higher standard of testing, rollout discipline, and incident
+response than application teams require of themselves.</p>
+
+<h2>Q2 2025 Priorities</h2>
+<ol>
+  <li>Ship API v3 authentication and rate-limiting layer — Jordan Kim (E001) leading</li>
+  <li>Data access endpoint migration (23 of 47 complete as of April) — Alex Patel (E002) leading</li>
+  <li>Enterprise Portal backend services — Morgan Santos (E005) leading</li>
+  <li>Internal developer portal MVP</li>
+</ol>
+
+<h2>Dependency Map</h2>
+<p>Data Science team (T003) is blocked on the new event-stream endpoint in API v3. ETA: 2025-05-01.
+Enterprise Portal frontend is dependent on Product Design (T002) completing the Design System v2
+component library (PR002). Design handoff target: 2025-05-15.</p>
+
+<h2>Challenges and Risks</h2>
+<p>The migration of legacy consumers to API v3 requires coordination across six teams. We are managing
+this through a deprecation calendar and automated migration tooling developed in-house. The highest risk
+item is the payment service integration, currently scheduled for Week 18. The payments team has not yet
+committed to a review date for the new v3 webhook signature scheme.</p>
+
+<h2>Team Health</h2>
+<p>The team is operating at full capacity with no open headcount. Sam Chen (E003) is ramping on the data
+access endpoint family. Riley Okafor (E004) owns test coverage and documentation, which has raised our
+overall code quality metrics significantly since Q1. We will reassess headcount needs in Q3 planning.</p>
+</body>
+</html>

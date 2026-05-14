@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Project Status Report — Enterprise Portal (PR006)</title></head>
+<body>
+<h1>Project Status Report: Enterprise Portal</h1>
+<p>Project ID: PR006 | Team: Core Platform (T001) | Status: Active | As of: 2025-04-14</p>
+<p>Timeline: 2025-02-15 to 2025-08-31 | Budget: $125,000</p>
+
+<h2>Executive Summary</h2>
+<p>The Enterprise Portal is approximately 35% complete against an August 31 general availability date.
+Project status is AMBER: backend services are ahead of schedule, but the frontend design handoff from
+Product Design (T002) has been delayed two weeks due to Design System v2 prioritisation. A revised
+handoff date of 2025-05-15 has been agreed with Casey Liu (E006). No impact to GA date is anticipated
+if the revised date is met.</p>
+
+<h2>Scope</h2>
+<p>The Enterprise Portal delivers a self-service B2B administration interface serving our 120 enterprise
+accounts. Capabilities include: user provisioning and de-provisioning, role and permission management,
+usage reporting and cost allocation, billing overview, and API key management. It is a key Q3 sales
+enablement tool, expected to reduce enterprise onboarding time from 14 days to 3 days.</p>
+
+<h2>Milestone Status</h2>
+<table border="1" cellpadding="4">
+  <tr><th>Milestone</th><th>Target Date</th><th>Status</th><th>Owner</th></tr>
+  <tr><td>Backend API foundation</td><td>2025-03-15</td><td>Complete</td><td>Morgan Santos (E005)</td></tr>
+  <tr><td>Auth token scoping for enterprise tenants</td><td>2025-03-01</td><td>Complete (dependency on PR001 met)</td><td>Jordan Kim (E001)</td></tr>
+  <tr><td>User provisioning service</td><td>2025-04-30</td><td>In progress — 65%</td><td>Morgan Santos (E005)</td></tr>
+  <tr><td>Frontend design handoff from T002</td><td>2025-05-01 → 2025-05-15</td><td>Delayed (AMBER)</td><td>Casey Liu (E006)</td></tr>
+  <tr><td>Frontend scaffolding</td><td>2025-05-15</td><td>In progress (parallel with design)</td><td>Morgan Santos (E005)</td></tr>
+  <tr><td>Role management module</td><td>2025-06-15</td><td>Not started</td><td>Morgan Santos (E005)</td></tr>
+  <tr><td>Usage reporting module</td><td>2025-07-15</td><td>Not started</td><td>Morgan Santos (E005)</td></tr>
+  <tr><td>Beta launch (10 enterprise accounts)</td><td>2025-08-01</td><td>Not started</td><td>Jordan Kim (E001)</td></tr>
+  <tr><td>General availability</td><td>2025-08-31</td><td>Not started</td><td>Jordan Kim (E001)</td></tr>
+</table>
+
+<h2>Team</h2>
+<ul>
+  <li>Morgan Santos (E005) — Lead. Backend services, architecture, and frontend scaffolding.</li>
+  <li>Jordan Kim (E001) — Advisor. Auth integration (30% allocation), API v3 alignment, beta coordination.</li>
+</ul>
+
+<h2>Risks</h2>
+<p><strong>AMBER — Frontend design delay:</strong> Two weeks recovered through parallel backend work.
+No impact to GA date if design handoff completes by 2025-05-15. Risk owner: Jordan Kim (E001).
+Review date: 2025-05-01.</p>
+<p><strong>GREEN — Auth dependency:</strong> Auth token scoping for enterprise tenants was completed
+2025-03-01, dependent on API v3 auth middleware (PR001). This dependency has been satisfied and is
+no longer a risk.</p>
+<p><strong>AMBER — Enterprise sales readiness:</strong> Sales team requires a demo environment by
+2025-07-15 for a key enterprise prospect. This is achievable if the role management module ships
+on schedule. Jordan Kim to confirm timeline with sales director by 2025-04-21.</p>
+
+<h2>Budget</h2>
+<p>Budget: $125,000 | Spent to date: $43,500 (35%) | Projected final: $119,000 | Status: Within budget</p>
+<p>Backend services came in under budget due to reuse of infrastructure components from API v3 (PR001).
+Frontend costs may increase slightly if design delays require contractor support.</p>
+</body>
+</html>

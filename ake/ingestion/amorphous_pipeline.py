@@ -64,12 +64,22 @@ class InferredRelationship:
 
 
 @dataclass
+class DocumentLink:
+    document_name: str  # DocumentInfo.name (stem)
+    entity_id: str      # matched entity ID value (e.g. "T001", "PR003")
+    table_name: str     # table that owns the entity
+    column_name: str    # entity_id column in that table
+    doc_type: str       # inferred from filename suffix ("vision", "status", "workspec", …)
+
+
+@dataclass
 class AmorphousIngestionResult:
     dataset_name: str
     source_dir: Path
     tables: list[TableInfo]
     documents: list[DocumentInfo]
     relationships: list[InferredRelationship]
+    document_links: list[DocumentLink] = field(default_factory=list)
 
     @property
     def all_elements(self) -> list[Element]:
@@ -220,6 +230,49 @@ def _infer_relationships(tables: list[TableInfo]) -> list[InferredRelationship]:
 
 
 # ---------------------------------------------------------------------------
+# Document-entity linking
+# ---------------------------------------------------------------------------
+
+def _infer_document_links(
+    tables: list[TableInfo],
+    documents: list[DocumentInfo],
+) -> list[DocumentLink]:
+    """Match documents to their related entities by scanning entity IDs in filenames.
+
+    For a file like ``project_PR001_status.html`` the stem is split on ``_``
+    giving tokens ``["project", "PR001", "status"]``. Each token is checked
+    against a map of all known entity ID values across every table.  The first
+    matching token determines the link; remaining tokens become the ``doc_type``.
+    """
+    entity_id_map: dict[str, tuple[str, str]] = {}
+    for tbl in tables:
+        for col in tbl.columns:
+            if col.semantic_role == "entity_id":
+                for el in tbl.result.elements:
+                    row = _parse_row_text(el.text)
+                    val = row.get(col.name, "").strip()
+                    if val:
+                        entity_id_map[val] = (tbl.name, col.name)
+
+    links: list[DocumentLink] = []
+    for doc in documents:
+        tokens = doc.name.split("_")
+        for i, token in enumerate(tokens):
+            if token in entity_id_map:
+                table_name, column_name = entity_id_map[token]
+                doc_type = "_".join(tokens[i + 1:]) if i + 1 < len(tokens) else "document"
+                links.append(DocumentLink(
+                    document_name=doc.name,
+                    entity_id=token,
+                    table_name=table_name,
+                    column_name=column_name,
+                    doc_type=doc_type,
+                ))
+                break
+    return links
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -303,4 +356,5 @@ async def ingest_directory(
         tables=tables,
         documents=documents,
         relationships=_infer_relationships(tables),
+        document_links=_infer_document_links(tables, documents),
     )
